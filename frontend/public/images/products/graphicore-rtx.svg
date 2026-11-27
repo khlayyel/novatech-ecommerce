@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="GraphiCore RTX 5080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ecfdf4"/><stop offset="1" stop-color="#d9f5e7"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" rx="24" fill="url(#bg)"/>
+  <ellipse cx="240" cy="274" rx="150" ry="14" fill="#0b1220" opacity="0.09"/>
+  <g>
+    <rect x="70" y="108" width="340" height="130" rx="14" fill="#131a2c"/>
+    <rect x="70" y="108" width="340" height="16" rx="8" fill="#1d2740"/>
+    <circle cx="150" cy="180" r="42" fill="#0b1220" stroke="#1d2740" stroke-width="5"/>
+    <path d="M150 144 L166 172 L134 172 Z" fill="#059669"/>
+    <path d="M150 216 L134 188 L166 188 Z" fill="#059669" opacity="0.7"/>
+    <path d="M114 180 h72" stroke="#059669" stroke-width="4" opacity="0.5"/>
+    <circle cx="286" cy="180" r="42" fill="#0b1220" stroke="#1d2740" stroke-width="5"/>
+    <path d="M286 144 L302 172 L270 172 Z" fill="#059669"/>
+    <path d="M286 216 L270 188 L302 188 Z" fill="#059669" opacity="0.7"/>
+    <path d="M250 180 h72" stroke="#059669" stroke-width="4" opacity="0.5"/>
+    <path d="M352 120 v98" stroke="#10b981" stroke-width="3" opacity="0.8"/>
+    <rect x="120" y="238" width="60" height="14" rx="3" fill="#d4a017"/>
+    <rect x="190" y="238" width="60" height="14" rx="3" fill="#d4a017"/>
+    <rect x="260" y="238" width="34" height="14" rx="3" fill="#d4a017"/>
+    <path d="M224 96 L244 76 L232 76 L252 56" stroke="#059669" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

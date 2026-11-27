@@ -1,0 +1,53 @@
+# ── Stack complète en local : MongoDB + API + Frontend ────────────
+# Usage :
+#   JWT_SECRET=... STRIPE_SECRET_KEY=sk_test_... docker compose up --build
+#   (ou créez un fichier .env à la racine avec ces variables)
+#
+#   Frontend : http://localhost:8080   API : http://localhost:5000
+
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://mongo:27017/novatech
+      JWT_SECRET: ${JWT_SECRET:-change-me-en-production}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      FRONTEND_URL: http://localhost:8080,http://localhost:5173
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+        VITE_STRIPE_PUBLIC_KEY: ${VITE_STRIPE_PUBLIC_KEY:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  mongo-data:

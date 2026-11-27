@@ -1,0 +1,818 @@
+Workshop : Développement d'une Plateforme E-commerce Fullstack avec React, Node.js, MongoDB et Stripe
+Contexte et Objectifs Pédagogiques
+Ce workshop intensif a pour ambition de permettre aux participants de concevoir, développer, tester et déployer une application e-commerce complète dédiée à la vente de produits informatiques. À l'issue de cette formation, chaque étudiant sera capable de maîtriser l'ensemble de la chaîne de développement d'une application web moderne, depuis la modélisation des données jusqu'à la mise en production, en passant par l'intégration d'un système de paiement sécurisé et l'automatisation des tests. L'accent est mis sur l'autonomie, la rigueur technique et la capacité à livrer un produit fonctionnel dans un délai contraint.
+Public Cible et Prérequis
+Les prérequis techniques incluent la maîtrise de Node.js, npm, Git, ainsi que la possession de comptes fonctionnels sur GitHub, MongoDB Atlas, Stripe (mode test) et une plateforme de déploiement telle que Render ou Vercel. Une connaissance préalable d'Express est un atout, mais sera rapidement consolidée.
+Organisation Générale et Format
+Le workshop se déroule sur une période maximale de dix jours, en travail individuel. Chaque participant est responsable de son avancement et de la livraison de son projet. L'encadrement se fait sous forme de séances de mentorat, de points d'étape réguliers et de revues de code. Le format privilégie la pratique autonome : les étudiants sont confrontés à des problématiques réelles et doivent mobiliser leurs compétences pour les résoudre, avec un accompagnement ciblé. Aucun script détaillé n'est fourni ; les étudiants doivent produire eux-mêmes leur code et documenter leurs choix techniques.
+Architecture du Projet
+Le projet prend la forme d'un monorepo organisé en deux espaces distincts : un backend Node.js/Express et un frontend React/TypeScript. Le backend expose une API REST sécurisée, connectée à une base de données MongoDB hébergée sur Atlas. Il intègre la logique métier relative aux produits, aux paniers, aux commandes et à l'authentification, ainsi que le service de paiement Stripe. Le frontend consomme cette API et propose une interface utilisateur fluide : catalogue de produits, gestion du panier, tunnel de paiement avec Stripe Elements et pages de confirmation. La communication entre les deux parties se fait via des appels HTTP, avec une gestion rigoureuse des variables d'environnement.
+Découpage Pédagogique et Progression
+Le workshop est structuré en modules thématiques, chacun correspondant à une étape clé du développement. Les étudiants avancent à leur rythme, mais doivent respecter des jalons intermédiaires pour garantir la faisabilité du projet dans le temps imparti. Chaque module donne lieu à une livraison partielle, évaluée de manière formative.
+Module 1 — Initialisation et Environnement de Travail
+Les étudiants mettent en place la structure du monorepo, configurent les fichiers de dépendances, initialisent les dépôts Git et préparent les environnements de développement. Ils installent les bibliothèques nécessaires côté backend et frontend, configurent les scripts npm et vérifient le bon fonctionnement de la chaîne d'outils. Ce module pose les fondations et permet de détecter rapidement les éventuels problèmes de configuration.
+Module 2 — Modélisation des Données
+Une attention particulière est portée à la conception du schéma de données avec Mongoose. Les étudiants modélisent les produits (nom, description, prix, catégorie, stock, image), les paniers (items, quantités, expiration), les commandes (utilisateur, items, montant total, identifiant Stripe, statut) et, de manière optionnelle mais recommandée, les utilisateurs pour l'authentification. Ils doivent réfléchir aux relations entre entités et aux contraintes de validation.
+Module 3 — API Produits et Panier
+Les étudiants développent les routes REST permettant de lister les produits, d'ajouter un article au panier, de consulter le panier, de modifier les quantités et de supprimer des articles. Ils implémentent les contrôleurs correspondants et veillent à la cohérence des données. La gestion du panier peut être persistée en base ou stockée en session, selon les choix architecturaux de chaque étudiant.
+Module 4 — Intégration Stripe
+Ce module constitue le cœur technique du projet. Les étudiants configurent Stripe, créent des intentions de paiement, gèrent la création de commandes en statut "en attente", et mettent en place un webhook permettant de confirmer le paiement et de mettre à jour le statut de la commande. Ils apprennent à tester les webhooks localement à l'aide de Stripe CLI et à sécuriser les échanges.
+Module 5 — Tests Backend
+Les étudiants écrivent des tests unitaires et d'intégration pour les API et le service Stripe, en utilisant Jest et Supertest. Ils apprennent à mocker les dépendances externes, à isoler les tests et à vérifier la robustesse de leur code. Ce module vise à instaurer une culture de la qualité et de la non-régression.
+Module 6 — Initialisation du Frontend React
+Les étudiants créent l'application React avec TypeScript, configurent les services API via Axios, mettent en place le routage et préparent la structure des composants. Ils définissent les variables d'environnement nécessaires à la communication avec le backend.
+Module 7 — Composants Principaux
+Les étudiants développent les composants clés : liste des produits avec ajout au panier, page panier avec modification et suppression d'articles, formulaire de paiement intégrant Stripe Elements, et page de confirmation. La gestion de l'état du panier se fait via React Context ou Redux Toolkit, au choix de l'étudiant, mais doit être cohérente et maintenable.
+Module 8 — Tests Frontend
+Les étudiants écrivent des tests de composants et d'appels API avec Testing Library et Jest. Ils vérifient le rendu conditionnel, les interactions utilisateur et la gestion des erreurs. Ce module complète la démarche qualité initiée côté backend.
+Module 9 — Automatisation et CI/CD
+Les étudiants mettent en place des scripts npm pour l'installation, le build, le démarrage et le lancement simultané des deux parties de l'application. Ils créent des fichiers Docker pour la conteneurisation et configurent un pipeline GitHub Actions pour exécuter les tests et déclencher les déploiements. Ce module introduit les bonnes pratiques DevOps.
+Module 10 — Déploiement Effectif
+Chaque étudiant déploie son backend sur Render ou Railway, connecté à MongoDB Atlas et à Stripe, et son frontend sur Vercel ou Netlify. Ils configurent les variables d'environnement et vérifient le fonctionnement de bout en bout : consultation des produits, ajout au panier, paiement en mode test et confirmation de commande. Ce module valide l'ensemble du projet.
+Module 11 — Bonus et Approfondissements
+Les étudiants peuvent, s'ils le souhaitent, implémenter la décrémentation des stocks après paiement, une page de suivi des commandes ou encore l'authentification JWT pour lier le panier à un utilisateur connecté. Ces ajouts permettent de différencier les projets et d'approfondir certains aspects.
+Modalités d'Évaluation et de Rendu
+L'évaluation repose sur plusieurs critères : la fonctionnalité complète du site (catalogue, panier, paiement, confirmation), la qualité du code (lisibilité, organisation, gestion des erreurs), la présence et la pertinence des tests, la configuration du pipeline CI/CD, le déploiement effectif et la documentation fournie. Chaque étudiant remet un dépôt GitHub contenant l'intégralité du code, un fichier README détaillant l'architecture, les choix techniques, les instructions d'installation et de déploiement, ainsi qu'un court rapport de retour d'expérience. Une démonstration fonctionnelle est exigée lors de la soutenance finale. La note finale tient compte de l'autonomie, de la capacité à résoudre les problèmes et de la qualité de la communication technique.
+Gestion du Temps et Rythme de Travail
+Sur les dix jours impartis, il est recommandé de consacrer les deux premiers jours à la mise en place et à la modélisation, les trois jours suivants au développement des API et à l'intégration Stripe, deux jours au frontend et aux tests, un jour à l'automatisation et au déploiement, et enfin deux jours à la finalisation, aux bonus et à la préparation de la soutenance. Ce découpage indicatif permet de garder un rythme soutenu tout en laissant une marge pour les imprévus techniques. Les étudiants sont encouragés à travailler de manière régulière et à solliciter l'encadrement dès qu'un blocage survient, afin d'éviter l'accumulation de retard.
+Ressources et Accompagnement
+Les étudiants disposent d'une documentation en ligne, des ressources officielles de Stripe, MongoDB et React, ainsi que de séances de mentorat planifiées. Un canal d'échange est mis à disposition pour poser des questions et partager des bonnes pratiques. L'accent est mis sur l'autonomie : les étudiants doivent apprendre à chercher, expérimenter et documenter leurs solutions. L'encadrant intervient en tant que guide et garant de la qualité, sans fournir de code prêt à l'emploi.
+Conclusion
+Ce workshop constitue une immersion complète dans le développement d'une application e-commerce fullstack. En dix jours de travail individuel, chaque étudiant acquiert une expérience concrète et valorisable, depuis la conception jusqu'au déploiement en production. La combinaison de React, Node.js, MongoDB et Stripe, associée à une démarche qualité et DevOps, prépare efficacement aux exigences du monde professionnel. L'étudiant ressort avec un projet fonctionnel, documenté et déployé, témoignant de sa capacité à mener à bien un développement complexe en autonomie.
+[@EXAMENTP FRONTEND.txt (1:42)](file:///C:/Users/khali/Downloads/EXAMENTP%20FRONTEND/EXAMENTP%20FRONTEND.txt#L1:42) pls reaadd alll off thisss  hello pls this is notre examen frontend like other tps and workshops that weve done before ... like C:\Users\khali\Downloads\Atelier  Site E-commerce de Produits Informatiques – Fullstack avec React, Node.js, MongoDB et Stripe , and C:\Users\khali\Downloads\Workshop Application Full-Stack React + Tests Frontend_Backend and C:\Users\khali\Downloads\TP4GestionDesEvennements and C:\Users\khali\Downloads\TP4  , pls read all the exam and see what demandecd and what bonus thinks and do it all create it all comme les instructiuons du professeur told us , follow it as it writen in this file [@EXAMENTP FRONTEND.txt](file:///C:/Users/khali/Downloads/EXAMENTP%20FRONTEND/EXAMENTP%20FRONTEND.txt)  read it alll alll allll , and then crete the project here dans la racine de ce dossier TP4 ... and when yu finished all , just tell me that youre finished all and smoke test all and if there is any cruds then smoke test them all make sure to evrything working , do exactly what is demanded in this file [@EXAMENTP FRONTEND.txt](file:///C:/Users/khali/Downloads/EXAMENTP%20FRONTEND/EXAMENTP%20FRONTEND.txt)     dont miss anything and pls use all elpin and all possible skills from here skills drectopry Skip to content
+Skills Directory
+Skills
+Learn
+Security
+Categories
+Docs
+Blog
+Pro
+Advertise
+796,572 indexed skills ·
+updated just now
+Agent Skills Directory
+Discover and install agent skills for coding, research, writing, and more.
+
+Describe what you're looking for...
+Try:
+
+code review
+git workflow
+testing
+documentation
+refactoring
+API design
+debugging
+performance
+security
+deployment
+Install skills from your terminal
+
+npx -y skills find
+
+40,817
+Security first
+Every listed skill has completed automated security analysis
+
+Skills scanned
+796,572
+Detection patterns
+120
+Threat categories
+10
+36% of skills in the wild have security flaws. We scan for prompt injection, credential theft, data exfiltration, and more.
+
+New to skills?
+Everything you need to get started
+
+What are skills?
+Learn what agent skills are and how they can supercharge your workflow
+
+Skills vs MCP
+Understand the difference between skills and MCP servers
+
+Getting started
+Install your first skill in under 2 minutes
+
+Create a skill
+Step-by-step guide to building and sharing your own skills
+
+Browse by category
+Find skills for your specific use case
+
+AI & Agents
+Development
+Code Review & Quality
+Testing & QA
+Security
+DevOps & Cloud
+Data & Analytics
+Databases
+Documentation
+Content & Marketing
+Have a skill to share?
+Submit your agent skills and help others work more efficiently. All submissions are reviewed before being published.
+
+Stay in the loop
+Get weekly updates on the best new skills, tutorials, and community highlights.
+
+you@example.com
+Skills Directory
+Security-tested agent skills for Claude, coding agents, and AI workflows.
+
+Stay in the loop
+
+Get weekly updates on the best new skills and tutorials.
+
+Email address
+you@company.com
+Directory
+
+Browse skills
+All skills A–Z
+Claude skills
+Claude Code skills
+Agent skills
+Categories
+Authors
+Submit a skill
+Learn and security
+
+Learn hub
+Install Claude skills
+Write SKILL.md
+Skills vs MCP
+Directories compared
+Security
+Security methodology
+Secure Claude skills
+Security badges
+Company
+
+About
+Pro
+Blog
+API docs
+Chrome extension
+Skill Manager
+Advertise
+Terms
+Privacy
+Refunds
+© 2026 Skills Directory. All rights reserved.  and plss after reading and comprhending it all and coding and building it aallll plss tell what demanded from me to give it to you , pls voir ce que l proffe demande exactement a faire et coprhend it all  pls read all of this file [@EXAMENTP FRONTEND.txt](file:///C:/Users/khali/Downloads/EXAMENTP%20FRONTEND/EXAMENTP%20FRONTEND.txt) line per line word per word and comprhend ce que le prof a demande et do seuelement ce quil a demande only , et si il ya une suggestin de bonus que le prof a demande de faire dans ce ficher [@EXAMENTP FRONTEND.txt](file:///C:/Users/khali/Downloads/EXAMENTP%20FRONTEND/EXAMENTP%20FRONTEND.txt) , see if exits some bonus things then do it alll even the bonus things , but dont do other thing sthat le prof didnt tell us to do ... and pour stripe and thing an cles etrangeres pls maybe you finds mine here in oither prject C:\Users\khali\Downloads\Atelier  Site E-commerce de Produits Informatiques – Fullstack avec React, Node.js, MongoDB et Stripe you can take all what you need from here comme stripe keys and se efrom this other porject see the nvironments variables , pour ne pas creer a chaque fois des nouvelles cles et choses , you can use things from this projects , like gthub and if le prof aa emande , si non non , et pls if necessary pour create new service web on vercel or render just tell me ,a nd same pour github if necessary new repository tell me , et same pour stripe if necessary enw things just tell me , and also dont forget for env variables so we put them in render vercel and github (i think pour le ci/cd il va contenir les things de render vercel...etc) ... so pl sread all this file [@EXAMENTP FRONTEND.txt](file:///C:/Users/khali/Downloads/EXAMENTP%20FRONTEND/EXAMENTP%20FRONTEND.txt) alll allll alllla alllll , and je veux le best work ever ever ever done et pour le design pls modern and professional and use all skills from that site skills directry found all skills that can b eused by you to build all this project from 0 to hereo now , and respect architecture and structure and pls always maintain the project clean afetr tests an dthngs pls always dont forget to rmeove test files and script files and temp files .... to maintan the architecture and structure verryyy goooood verryy goood , soooo doo all what you got pls and je veux le best design ever pls , see web also pour t ed onnerr des ideees , and pls finish all the project and followalways this document always always [@EXAMENTP FRONTEND.txt](file:///C:/Users/khali/Downloads/EXAMENTP%20FRONTEND/EXAMENTP%20FRONTEND.txt) and for exra things if good and le porof nous a donne le choix , alors do all what you wnt even extra things ... lobjectif est de terminer tout le proojet , avec une structure et architecture very good et avec un backend et frontend alsooo very goooooddd professional and modern au maxxx.... un projet sans bugs avec smoke test all endpoints and all get and post and . .etc requests and see ce uqi est envoye et ce qui retourne en detail pour connaitre les bugs et les problemees , corriger alll , and also corriger all vulnerabilities and warnings and errors and even little warnings to let anything to correct .... dooo allll and takkeee your timeeee ..... et  puis etape par etape tell me what dmanded from me to do step by step about mongo db et stripe et vercel et render et git et allll , then were goping to link all demanded things , je veux que mon exam project sera le mpeilleure one du classe ou du luniversite .. # MASTER PROMPT — FULLSTACK E-COMMERCE EXAMINATION
+## Objective: Deliver an exceptional, fully functional, professionally engineered academic project
+
+You are acting as a Senior Full-Stack Software Engineer, Software Architect, UI/UX Designer, QA Engineer, Security Engineer and DevOps Engineer.
+
+Your mission is to analyze, design, implement, test, document and prepare my complete examination project for delivery.
+
+I want an exceptional result: technically excellent, visually impressive, reliable, maintainable, secure and fully compliant with the professor's instructions.
+
+However, there is one absolute rule:
+
+**THE PROFESSOR'S EXAMINATION DOCUMENT IS THE SINGLE SOURCE OF TRUTH.**
+
+Do not invent requirements, remove requested functionality, or add unrelated features just to make the application look more sophisticated.
+
+---
+
+# PHASE 0 — READ AND UNDERSTAND EVERYTHING BEFORE CODING
+
+## 0.1. Main examination document
+
+Open and read this file completely:
+
+`C:\Users\khali\Downloads\EXAMENTP FRONTEND\EXAMENTP FRONTEND.txt`
+
+Read every line, every paragraph, every heading, every instruction, every example and every note.
+
+Do not stop at line 42 or assume that the first part contains everything.
+
+I insist on complete comprehension before implementation.
+
+Extract:
+
+- All mandatory requirements.
+- All optional requirements.
+- All explicitly suggested bonus features.
+- Every requested page and component.
+- Every requested backend and frontend functionality.
+- All technologies and architectural constraints.
+- All testing requirements.
+- All deployment requirements.
+- All documentation and submission requirements.
+- Everything the professor expects me to configure or provide.
+
+Create a requirement traceability checklist.
+
+For each requirement, record:
+1. Requirement ID.
+2. Exact description.
+3. Mandatory or bonus.
+4. Planned implementation.
+5. Relevant files/modules.
+6. Testing procedure.
+7. Final verification status.
+
+Do not mark anything completed simply because its code exists. Verify that it works.
+
+## 0.2. Additional workshop reference
+
+Use the complete E-commerce Fullstack Workshop specification provided in this prompt as additional technical and pedagogical context.
+
+Pay particular attention to these 11 modules:
+
+1. Project initialization and development environment.
+2. MongoDB/Mongoose data modeling.
+3. Products and shopping cart APIs.
+4. Stripe payment integration.
+5. Backend testing with Jest and Supertest.
+6. React/TypeScript frontend initialization.
+7. Main frontend components.
+8. Frontend testing with Testing Library and Jest.
+9. Automation, Docker and GitHub Actions CI/CD.
+10. Actual deployment.
+11. Bonus features.
+
+Understand the expected deliverables and evaluation criteria.
+
+Do not automatically assume that every workshop recommendation is mandatory for the examination. Compare the workshop with the actual examination document and classify each requirement accordingly.
+
+## 0.3. Study my previous projects
+
+Inspect these directories completely where relevant:
+
+**Reference project 1:**
+`C:\Users\khali\Downloads\Atelier Site E-commerce de Produits Informatiques – Fullstack avec React, Node.js, MongoDB et Stripe`
+
+**Reference project 2:**
+`C:\Users\khali\Downloads\Workshop Application Full-Stack React + Tests Frontend_Backend`
+
+**Reference project 3:**
+`C:\Users\khali\Downloads\TP4GestionDesEvennements`
+
+**Reference project 4:**
+`C:\Users\khali\Downloads\TP4`
+
+Understand their:
+- Architecture.
+- Project structure.
+- Existing implementations.
+- Dependencies.
+- Environment configurations.
+- MongoDB integration.
+- Stripe integration.
+- API conventions.
+- Authentication.
+- Testing approaches.
+- Deployment configurations.
+- Reusable code.
+
+Reuse existing configurations and integrations when appropriate.
+
+For Stripe and other external services, inspect existing environment variables without exposing secrets in terminal output, logs, reports or committed files.
+
+Never copy credentials into source code.
+
+Do not overwrite or damage the reference projects.
+
+---
+
+# PHASE 1 — ARCHITECTURE AND PROJECT PLANNING
+
+The project must be created in the root of:
+
+`C:\Users\khali\Downloads\TP4`
+
+First inspect the directory to understand its existing contents.
+
+Do not delete or overwrite existing useful files.
+
+Design the architecture based on the examination requirements and the technologies specified by the professor.
+
+The workshop reference describes a monorepo with:
+
+- Backend: Node.js + Express.
+- Frontend: React + TypeScript.
+- Database: MongoDB Atlas + Mongoose.
+- Payment: Stripe.
+- Backend tests: Jest + Supertest.
+- Frontend tests: Jest + React Testing Library.
+- CI/CD: GitHub Actions.
+- Containers: Docker.
+- Deployment: Render or Railway for backend, Vercel or Netlify for frontend.
+
+Follow these technologies unless the actual examination document specifies otherwise.
+
+The architecture should provide:
+
+- Clear separation of frontend and backend.
+- Modular organization.
+- Separation between routes, controllers, services, models and middleware where appropriate.
+- Reusable React components.
+- Centralized API communication.
+- Centralized error handling.
+- Centralized configuration.
+- Proper validation.
+- Maintainable business logic.
+
+Avoid unnecessary complexity and architectural layers.
+
+The project must remain understandable to an academic examiner.
+
+---
+
+# PHASE 2 — COMPLETE BACKEND IMPLEMENTATION
+
+Implement every backend feature required by the examination.
+
+Based on the workshop specification, investigate and implement the following where required.
+
+## Database modeling
+
+Use Mongoose with properly designed schemas for:
+
+- Products.
+- Shopping carts.
+- Orders.
+- Users, if authentication is required or selected as a bonus.
+
+Pay attention to:
+
+- Data validation.
+- Required fields.
+- Appropriate data types.
+- Relationships and references.
+- Unique constraints.
+- Indexes where useful.
+- Timestamps.
+- Data consistency.
+
+## REST API
+
+Implement all required endpoints.
+
+Expected workshop functionality includes:
+
+- Product listing.
+- Product details.
+- Adding items to the cart.
+- Retrieving the cart.
+- Updating quantities.
+- Removing cart items.
+- Creating orders.
+- Payment processing.
+- Payment confirmation.
+
+Implement proper HTTP methods and status codes.
+
+Validate incoming requests.
+
+Never trust prices, totals, payment amounts or product ownership sent by the frontend. Recalculate sensitive values on the backend using trusted database information.
+
+Implement consistent error responses.
+
+---
+
+# PHASE 3 — STRIPE PAYMENT INTEGRATION
+
+Implement Stripe properly in test mode.
+
+Where required:
+
+1. Configure Stripe using environment variables.
+2. Create PaymentIntents securely.
+3. Create pending orders.
+4. Integrate Stripe Elements into the frontend.
+5. Implement webhook handling.
+6. Verify webhook signatures.
+7. Handle successful and failed payments.
+8. Update order statuses correctly.
+9. Prevent duplicate payment processing.
+10. Handle payment failures and interrupted checkout sessions.
+
+Use Stripe CLI when available to test webhooks locally.
+
+Inspect the previous e-commerce workshop project for reusable Stripe configurations.
+
+Reuse existing valid test credentials where appropriate.
+
+Never expose secret keys in frontend code.
+
+Never commit `.env` files.
+
+Do not create a new Stripe account or unnecessary payment infrastructure without telling me.
+
+---
+
+# PHASE 4 — COMPLETE FRONTEND IMPLEMENTATION
+
+Build a professional React + TypeScript application.
+
+The visual result must be exceptional while respecting the professor's functional requirements.
+
+Design direction:
+
+- Modern professional e-commerce identity.
+- Elegant typography.
+- Consistent color system.
+- Excellent spacing and alignment.
+- Professional product cards.
+- Attractive product catalog.
+- High-quality shopping cart.
+- Intuitive checkout experience.
+- Clear order confirmation.
+- Responsive desktop, tablet and mobile layouts.
+- Consistent reusable components.
+- Accessible interactions.
+
+Implement all required pages and functionalities.
+
+Include appropriate:
+- Loading states.
+- Empty states.
+- Error states.
+- Success notifications.
+- Form validation.
+- Confirmation dialogs.
+- Responsive navigation.
+
+Avoid generic template-like design.
+
+Do not introduce unnecessary pages or business functionality.
+
+The frontend must communicate correctly with the backend and handle API failures gracefully.
+
+---
+
+# PHASE 5 — BONUS FEATURES
+
+Read the professor's bonus instructions carefully.
+
+The workshop specifically suggests:
+
+1. Automatic stock decrement after successful payment.
+2. An order tracking page.
+3. JWT authentication linking shopping carts to authenticated users.
+
+Implement every bonus explicitly requested by the professor.
+
+If the professor gives students the freedom to choose additional features, select the most valuable ones that fit the project and can be implemented reliably.
+
+Do not implement unrelated features.
+
+For stock management:
+- Never decrement stock before confirmed payment.
+- Prevent negative inventory.
+- Handle concurrent purchases.
+- Avoid duplicate stock decrements when a webhook is retried.
+
+For order tracking:
+- Display actual persisted order information.
+- Show meaningful order statuses.
+- Protect customer order information.
+
+For JWT:
+- Secure password storage.
+- Proper token validation.
+- Appropriate expiration.
+- Protected endpoints.
+- Authorization checks.
+
+---
+
+# PHASE 6 — TESTING AND QUALITY ASSURANCE
+
+Testing is a major evaluation criterion.
+
+Do not simply execute the application and declare success.
+
+## Backend tests
+
+Use Jest and Supertest as specified by the workshop.
+
+Test:
+- All API endpoints.
+- Successful responses.
+- Invalid inputs.
+- Missing fields.
+- Nonexistent resources.
+- Database failures.
+- Authentication and authorization where applicable.
+- Product CRUD operations if present.
+- Cart operations.
+- Order creation.
+- Payment-related logic.
+- Webhook processing.
+
+Use isolated test data and mock external services where appropriate.
+
+## Frontend tests
+
+Use Jest and React Testing Library.
+
+Test:
+- Component rendering.
+- User interactions.
+- Form validation.
+- Conditional rendering.
+- Cart operations.
+- API success responses.
+- API failure responses.
+- Loading states.
+- Checkout interactions.
+
+## Complete smoke testing
+
+After implementation, run the actual application and systematically test the complete user journey.
+
+Example:
+
+1. Open the application.
+2. Load the product catalog.
+3. Open a product.
+4. Add it to the cart.
+5. Change its quantity.
+6. Remove an item.
+7. Proceed to checkout.
+8. Complete a Stripe test payment.
+9. Receive payment confirmation.
+10. Verify that the order exists in MongoDB.
+11. Verify the correct payment status.
+12. Verify inventory updates if implemented.
+
+For every backend endpoint, record:
+
+- HTTP method.
+- URL.
+- Request payload.
+- Expected response.
+- Actual response.
+- HTTP status.
+- Whether the test passed.
+- Any encountered issue.
+
+Test GET, POST, PUT, PATCH and DELETE wherever applicable.
+
+Do not claim that an endpoint was tested if it was not actually executed.
+
+Fix discovered defects and rerun the relevant tests.
+
+---
+
+# PHASE 7 — SECURITY AND CODE QUALITY
+
+Perform a real security and quality audit.
+
+Check:
+
+- Dependency vulnerabilities.
+- Outdated packages.
+- Exposed secrets.
+- Improper CORS configuration.
+- Missing input validation.
+- NoSQL injection risks.
+- XSS risks.
+- Authentication weaknesses.
+- Authorization weaknesses.
+- Unsafe file handling if applicable.
+- Insecure webhook handling.
+- Improper error disclosure.
+- Rate limiting where appropriate.
+- Dependency and configuration problems.
+
+Run the available linting, type-checking and build commands.
+
+Fix legitimate errors and warnings.
+
+Do not hide warnings by disabling rules or suppressing errors without justification.
+
+Do not claim zero vulnerabilities if the audit has not established that.
+
+---
+
+# PHASE 8 — DOCKER, GITHUB ACTIONS AND CI/CD
+
+Implement the CI/CD functionality required by the professor.
+
+Where applicable, create:
+
+- Backend Dockerfile.
+- Frontend Dockerfile.
+- Docker Compose configuration.
+- GitHub Actions workflow.
+
+The pipeline should:
+
+1. Install dependencies.
+2. Validate the backend.
+3. Run backend tests.
+4. Validate TypeScript.
+5. Run frontend tests.
+6. Build the frontend.
+7. Build or validate the backend.
+8. Report failures correctly.
+
+Configure deployment automation where supported by the selected hosting providers.
+
+Understand the distinction between:
+
+- Local `.env` configuration.
+- Render environment variables.
+- Vercel environment variables.
+- GitHub Actions secrets.
+- Public frontend environment variables.
+
+Never commit secrets to GitHub.
+
+Do not place deployment secrets directly in workflow YAML files.
+
+---
+
+# PHASE 9 — DEPLOYMENT PREPARATION
+
+Inspect my existing accounts and configurations where possible.
+
+Prefer reusing existing services instead of unnecessarily creating new accounts or projects.
+
+Potential services:
+
+- MongoDB Atlas.
+- Stripe.
+- GitHub.
+- Render or Railway.
+- Vercel or Netlify.
+
+Prepare the project for actual deployment.
+
+Verify:
+
+- Production build.
+- Backend startup.
+- Database connection.
+- Frontend/backend communication.
+- CORS.
+- Environment variables.
+- Stripe test payments.
+- Webhook configuration.
+- Production URLs.
+
+Do not pretend deployment is complete if an external account, secret, domain, or user approval is missing.
+
+Do not create paid services or external resources without asking me.
+
+---
+
+# PHASE 10 — DOCUMENTATION AND ACADEMIC DELIVERY
+
+Prepare a professional README.md containing:
+
+- Project description.
+- Objectives.
+- Technology stack.
+- Architecture.
+- Folder structure.
+- Database models.
+- API endpoints.
+- Installation instructions.
+- Environment variables.
+- Local development instructions.
+- Testing instructions.
+- Docker instructions.
+- Deployment instructions.
+- Stripe test instructions.
+- Important security notes.
+
+Also prepare the short experience report if required by the examination.
+
+Document technical decisions so I can explain the architecture and implementation to my professor.
+
+Prepare a clear demonstration scenario for the final presentation.
+
+---
+
+# PHASE 11 — PROJECT CLEANLINESS
+
+Maintain a clean repository throughout development.
+
+Remove:
+- Temporary scripts.
+- Debugging artifacts.
+- Unused dependencies.
+- Duplicate files.
+- Unnecessary generated files.
+- Temporary logs.
+- Dead code.
+
+However, IMPORTANT:
+
+**DO NOT DELETE THE ACTUAL AUTOMATED TEST SUITES.**
+
+Tests are part of the academic deliverables and must remain in the repository.
+
+Keep only useful, organized tests and scripts.
+
+Never delete configuration or deployment files needed to reproduce the project.
+
+Add an appropriate `.gitignore`.
+
+---
+
+# PHASE 12 — FINAL AUDIT AND COMPLETION REPORT
+
+Before declaring the project finished, perform a final comparison against the original examination document.
+
+Every requirement must have a verified status.
+
+Provide me with a final report containing:
+
+## A. Examination compliance
+- Mandatory requirements completed.
+- Bonus requirements completed.
+- Any requirements not completed.
+- Explanation of any limitations.
+
+## B. Technical quality
+- Backend build status.
+- Frontend build status.
+- TypeScript status.
+- Lint status.
+- Security audit results.
+- Automated test results.
+- Smoke test results.
+- CRUD test results.
+
+## C. Deployment status
+- GitHub repository status.
+- MongoDB connection status.
+- Stripe test integration status.
+- Backend deployment status.
+- Frontend deployment status.
+- CI/CD status.
+
+## D. What I must provide or configure
+
+Give me a step-by-step list of everything requiring my intervention.
+
+For example:
+
+1. MongoDB Atlas credentials or database configuration.
+2. Stripe test keys and webhook secret.
+3. GitHub repository creation or access.
+4. Render/Railway service creation.
+5. Vercel/Netlify project creation.
+6. Production environment variables.
+7. Domain configuration if required.
+
+For every action:
+- Explain why it is needed.
+- Tell me exactly where to click.
+- Tell me what value to enter.
+- Explain where to retrieve it.
+- Tell me where to configure it.
+- Never ask me to share secret credentials directly in chat.
+
+Clearly distinguish between things already configured and things still requiring my action.
+
+---
+
+# FINAL WORKING RULES
+
+1. Read the examination document completely before coding.
+2. The professor's requirements always take priority.
+3. Do not skip any mandatory or explicitly requested bonus feature.
+4. Do not invent requirements.
+5. Do not stop after creating a basic prototype.
+6. Do not replace functional implementation with mock data.
+7. Do not claim tests passed without executing them.
+8. Do not claim deployment succeeded without verifying it.
+9. Do not expose credentials.
+10. Do not damage existing reference projects.
+11. Preserve meaningful automated tests.
+12. Maintain a clean, professional architecture.
+13. Fix problems rather than hiding them.
+14. Document any unavoidable limitation.
+15. Keep the project easy to understand and defend academically.
+
+**EXECUTION STRATEGY:**
+
+Work autonomously through the project, phase by phase.
+
+Do not stop after analysis or planning. Once the requirements are understood, proceed with implementation, testing, corrections, documentation and deployment preparation.
+
+Only interrupt me when an actual decision, external credential, account creation, payment, or permission is required.
+
+Do not repeatedly ask me questions whose answers can be established by inspecting the provided files and projects.
+
+Do not sacrifice correctness for speed.
+
+The ultimate goal is to deliver a complete, professional, fully tested and demonstrable examination project that satisfies every instruction from the professor and stands out through its implementation quality.
+
+At the end, tell me explicitly:
+
+**THE PROJECT IS FINISHED** only when all locally achievable requirements have actually been implemented and verified.
+
+Then guide me through the remaining external configuration steps, one by one.
+
+ and smoke test with curls and other tools maybe find out by yourself ....

@@ -1,0 +1,72 @@
+# ── Déploiement continu : tests complets puis déploiement ─────────
+# Déclenché à chaque push sur main.
+# Les déploiements ne s'exécutent que si les secrets correspondants
+# sont configurés dans le dépôt GitHub (Settings → Secrets → Actions) :
+#   - RENDER_BACKEND_HOOK : URL de Deploy Hook du service Render
+#   - VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID : projet Vercel
+# Aucun secret n'apparaît dans ce fichier.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: Tests backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  frontend-tests:
+    name: Tests frontend + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+
+  deploy-backend:
+    name: Déploiement backend (Render)
+    needs: [backend-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_RENDER == 'true' }}
+    steps:
+      - name: Déclenchement du Deploy Hook Render
+        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_HOOK }}"
+
+  deploy-frontend:
+    name: Déploiement frontend (Vercel)
+    needs: [backend-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_VERCEL == 'true' }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx --yes vercel@latest pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+      - run: npx --yes vercel@latest build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+      - run: npx --yes vercel@latest deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="ClearView UltraWide 34">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7f8f4"/><stop offset="1" stop-color="#d4f1ea"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0d9488"/><stop offset="0.55" stop-color="#2563eb"/><stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" rx="24" fill="url(#bg)"/>
+  <ellipse cx="240" cy="290" rx="130" ry="14" fill="#0b1220" opacity="0.1"/>
+  <g>
+    <rect x="46" y="86" width="388" height="150" rx="20" fill="#131a2c"/>
+    <rect x="58" y="98" width="364" height="126" rx="14" fill="url(#screen)"/>
+    <rect x="80" y="118" width="150" height="10" rx="5" fill="#ffffff" opacity="0.85"/>
+    <rect x="80" y="138" width="230" height="7" rx="3.5" fill="#ffffff" opacity="0.4"/>
+    <circle cx="356" cy="170" r="30" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.75"/>
+    <path d="M356 140 v60 M326 170 h60" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+    <rect x="222" y="236" width="36" height="26" fill="#1d2740"/>
+    <path d="M176 262 h128 a10 10 0 0 1 10 10 v6 H166 v-6 a10 10 0 0 1 10 -10 Z" fill="#131a2c"/>
+  </g>
+</svg>

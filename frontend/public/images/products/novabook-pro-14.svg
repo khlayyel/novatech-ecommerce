@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="NovaBook Pro 14">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef0fe"/><stop offset="1" stop-color="#dfe3fc"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" rx="24" fill="url(#bg)"/>
+  <ellipse cx="240" cy="268" rx="150" ry="18" fill="#0b1220" opacity="0.08"/>
+  <g>
+    <path d="M96 236 L384 236 L366 258 Q363 262 357 262 L123 262 Q117 262 114 258 Z" fill="#131a2c"/>
+    <rect x="96" y="228" width="288" height="12" rx="6" fill="#1d2740"/>
+    <rect x="206" y="232" width="68" height="5" rx="2.5" fill="#2e3a58"/>
+    <rect x="120" y="60" width="240" height="168" rx="12" fill="#131a2c"/>
+    <rect x="130" y="70" width="220" height="148" rx="6" fill="url(#screen)"/>
+    <rect x="144" y="92" width="90" height="10" rx="5" fill="#ffffff" opacity="0.9"/>
+    <rect x="144" y="112" width="140" height="8" rx="4" fill="#ffffff" opacity="0.55"/>
+    <rect x="144" y="130" width="120" height="8" rx="4" fill="#ffffff" opacity="0.4"/>
+    <rect x="144" y="160" width="80" height="34" rx="8" fill="#ffffff" opacity="0.85"/>
+    <rect x="240" y="170" width="76" height="6" rx="3" fill="#ffffff" opacity="0.35"/>
+    <rect x="240" y="184" width="56" height="6" rx="3" fill="#ffffff" opacity="0.25"/>
+  </g>
+</svg>

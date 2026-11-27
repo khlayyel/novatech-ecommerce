@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="NovaSound 7.1 casque">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef0fd"/><stop offset="1" stop-color="#dfe5fb"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" rx="24" fill="url(#bg)"/>
+  <ellipse cx="240" cy="286" rx="130" ry="14" fill="#0b1220" opacity="0.09"/>
+  <g>
+    <path d="M132 196 C132 108 180 62 240 62 C300 62 348 108 348 196" fill="none" stroke="#131a2c" stroke-width="16" stroke-linecap="round"/>
+    <path d="M132 196 C132 108 180 62 240 62 C300 62 348 108 348 196" fill="none" stroke="#4f46e5" stroke-width="5" stroke-linecap="round"/>
+    <rect x="106" y="186" width="52" height="88" rx="22" fill="#131a2c"/>
+    <rect x="116" y="198" width="32" height="64" rx="14" fill="#4f46e5" opacity="0.85"/>
+    <rect x="322" y="186" width="52" height="88" rx="22" fill="#131a2c"/>
+    <rect x="332" y="198" width="32" height="64" rx="14" fill="#4f46e5" opacity="0.85"/>
+    <path d="M158 236 C170 272 196 288 234 292" fill="none" stroke="#131a2c" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="240" cy="294" r="11" fill="#131a2c"/>
+    <circle cx="240" cy="294" r="5" fill="#4f46e5"/>
+  </g>
+</svg>
