@@ -2,7 +2,7 @@
 
 > **Projet d'examen** — Workshop : développement d'une plateforme e-commerce fullstack dédiée aux **produits informatiques**, avec **React + TypeScript**, **Node.js + Express**, **MongoDB (Mongoose)** et **Stripe** (mode test), tests automatisés, conteneurisation Docker et pipeline CI/CD.
 
-![CI](https://github.com/VOTRE-UTILISATEUR/novatech-ecommerce/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/khlayyel/novatech-ecommerce/actions/workflows/ci.yml/badge.svg)
 
 Une boutique complète : catalogue filtrable, panier invité **ou** connecté (JWT), tunnel de paiement **Stripe Elements**, confirmation et **suivi de commande**, avec décrémentation du stock après paiement et pipeline de qualité (Jest, Supertest, React Testing Library, ESLint, GitHub Actions).
 
