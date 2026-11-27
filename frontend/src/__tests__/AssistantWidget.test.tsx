@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AssistantWidget from '../components/assistant/AssistantWidget';
 import * as assistantApi from '../api/assistant';
@@ -17,6 +17,7 @@ const customerUser: User = { id: 'u1', name: 'Client', email: 'client@novatech.f
 const adminUser: User = { id: 'a1', name: 'Admin', email: 'admin@novatech.fr', role: 'admin' };
 
 beforeEach(() => {
+  window.localStorage.clear();
   jest.clearAllMocks();
   mockAuth.user = null;
   mockedApi.sendChat.mockResolvedValue('Voici la réponse de l’assistant.');
@@ -65,6 +66,26 @@ describe('AssistantWidget', () => {
     expect(mockedApi.sendChat).toHaveBeenCalledWith([
       { role: 'user', text: 'Avez-vous des claviers ?' }
     ]);
+  });
+
+  it('conserve la conversation après un remontage (rafraîchissement)', async () => {
+    const first = render(<AssistantWidget />);
+
+    const dialog = await openWidget();
+    await userEvent.type(within(dialog).getByRole('textbox'), 'Bonjour');
+    await userEvent.click(within(dialog).getByRole('button', { name: /Envoyer/i }));
+    await within(dialog).findByText('Voici la réponse de l’assistant.');
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem('novatech.assistant.guest')).toContain('Bonjour');
+    });
+
+    first.unmount();
+    render(<AssistantWidget />);
+
+    const reopened = await openWidget();
+    expect(within(reopened).getByText('Bonjour')).toBeInTheDocument();
+    expect(within(reopened).getByText('Voici la réponse de l’assistant.')).toBeInTheDocument();
   });
 
   it('propose les questions analytiques à un administrateur', async () => {

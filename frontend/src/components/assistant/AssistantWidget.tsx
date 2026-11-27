@@ -18,20 +18,62 @@ const SUGGESTION_KEYS = {
   ]
 };
 
+const STORAGE_PREFIX = 'novatech.assistant.';
+const MAX_STORED = 30;
+
+const loadConversation = (key: string): ChatMessage[] => {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (item) =>
+          item &&
+          (item.role === 'user' || item.role === 'model') &&
+          typeof item.text === 'string'
+      )
+      .slice(-MAX_STORED);
+  } catch {
+    return [];
+  }
+};
+
+const saveConversation = (key: string, messages: ChatMessage[]) => {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(messages.slice(-MAX_STORED)));
+  } catch {
+    // Stockage indisponible : la conversation reste en mémoire.
+  }
+};
+
 const AssistantWidget = () => {
   const { user } = useAuth();
   const { t } = useI18n();
 
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const isAdmin = user?.role === 'admin';
+  const storageKey = `${STORAGE_PREFIX}${user?.id ?? 'guest'}`;
+  const [messages, setMessages] = useState<ChatMessage[]>(() => loadConversation(storageKey));
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const isAdmin = user?.role === 'admin';
+  const keyRef = useRef(storageKey);
   const suggestions = SUGGESTION_KEYS[isAdmin ? 'admin' : 'customer'];
+
+  useEffect(() => {
+    if (keyRef.current === storageKey) return;
+    keyRef.current = storageKey;
+    setMessages(loadConversation(storageKey));
+  }, [storageKey]);
+
+  useEffect(() => {
+    saveConversation(storageKey, messages);
+  }, [storageKey, messages]);
 
   useEffect(() => {
     if (!open) return;

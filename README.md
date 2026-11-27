@@ -410,6 +410,7 @@ Un assistant conversationnel est disponible dans toute l'application via un **bo
 
 - **Modèle** : Google **Gemini 3.5 Flash-Lite** (le 2.5 Flash-Lite n'est plus proposé aux nouvelles clés), appelé via `generateContent`.
 - **Deux expériences** : *Assistant boutique* pour visiteurs/clients (produits, stocks, suivi de commande) et *Assistant administrateur* (ventes, familles, stocks, commandes, clients).
+- **Conversation naturelle** : l'assistant répond aussi aux questions générales (culture, sport, date et heure système) tout en utilisant les outils pour les données NovaTech ; l'historique est conservé dans le navigateur, par compte, et survit au rafraîchissement comme à la navigation.
 - **Outils MongoDB ciblés** (function calling) : `search_products`, `get_product`, `get_order_status`, `get_my_orders` ; côté admin : `get_sales_stats`, `get_sales_by_category`, `get_top_products`, `get_low_stock_products`, `get_order_summary`, `get_recent_orders`, `get_customer_stats`, `get_inventory_value`. Chaque outil ne projette que les champs utiles et limite ses résultats.
 - **Sécurité** : outils analytiques réservés au rôle `admin` (relu en base à chaque requête) ; suivi de commande accessible au propriétaire JWT ou au jeton de suivi ; aucun accès aux données d'un autre client ; clé Gemini **uniquement côté serveur**.
 - **Optimisation du quota** : 20 messages / 15 min par IP, historique tronqué à 10 messages, 512 tokens de sortie, 3 appels d'outils maximum par question, résultats tronqués, cache mémoire de 30–60 s sur les agrégats admin.

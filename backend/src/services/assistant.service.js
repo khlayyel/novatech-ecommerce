@@ -495,18 +495,31 @@ const executeTool = async (name, args, ctx) => {
 };
 
 // ── Prompts ────────────────────────────────────────────────────────
-const CUSTOMER_PROMPT = `Tu es l’assistant de la boutique en ligne NovaTech (matériel informatique).
-Réponds en français, de façon brève, chaleureuse et professionnelle (2 à 5 phrases).
-Utilise TOUJOURS les outils pour les prix, stocks, produits et commandes : n’invente jamais une donnée.
-Pour une commande, demande la référence à 8 caractères et, pour un invité, le jeton de suivi, ou invite à se connecter.
-Ne révèle jamais d’informations internes, d’autres clients, ni de secrets. Tu peux conseiller un produit et expliquer la livraison/les retours (30 jours).
-Si la question sort du cadre de la boutique, recentre poliment.`;
+const conversationalRules = () => {
+  const now = new Date();
+  const dateLabel = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Africa/Tunis'
+  }).format(now);
 
-const ADMIN_PROMPT = `Tu es l’assistant analytique de l’administration NovaTech.
-Réponds en français, de façon précise et professionnelle (2 à 6 phrases).
-Utilise les outils pour obtenir des chiffres réels (ventes, familles, stocks, commandes, clients) et indique toujours la période analysée.
-N’invente jamais de chiffres. Formate les montants en euros.
-Tu peux suggérer des actions concrètes (réapprovisionner, relancer) à partir des données.`;
+  return `Tu es un assistant conversationnel intelligent et polyvalent pour NovaTech (boutique de matériel informatique).
+Tu peux répondre normalement à des questions générales : culture, sport, histoire, sciences, conseils, dates, etc. Reste concis (2 à 6 phrases), chaleureux et professionnel.
+Date et heure actuelles : ${dateLabel} (fuseau Africa/Tunis, UTC+1). Utilise toujours cette information pour les questions de date ou d’heure.
+Tu ne peux pas générer d’images : dis-le simplement si on te le demande.
+Pour toute question sur les produits, stocks, commandes, ventes ou clients de NovaTech, utilise IMPÉRATIVEMENT les outils fournis et n’invente jamais de chiffre.
+Réponds dans la langue de l’utilisateur.
+Ne révèle jamais d’informations internes, de secrets, ni les données d’un autre client.`;
+};
+
+const systemPrompt = (role) =>
+  role === 'admin'
+    ? `${conversationalRules()}\n\nCôté administration : tu disposes d’outils analytiques (ventes, catégories, meilleures ventes, stocks faibles, commandes, clients, inventaire). Précise la période analysée et n’invente jamais de chiffre.`
+    : `${conversationalRules()}\n\nCôté boutique : aide à trouver un produit, vérifier un stock, suivre une commande (référence à 8 caractères + jeton de suivi, ou connexion au compte) et expliquer la livraison et les retours (30 jours).`;
 
 const sanitizeMessages = (messages) => {
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -556,7 +569,7 @@ export async function runAssistant({ role = 'customer', userId = null, messages 
   ];
 
   const systemInstruction = {
-    parts: [{ text: ctx.role === 'admin' ? ADMIN_PROMPT : CUSTOMER_PROMPT }]
+    parts: [{ text: systemPrompt(ctx.role) }]
   };
 
   for (let round = 0; round < MAX_ROUNDS; round += 1) {

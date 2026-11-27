@@ -110,7 +110,7 @@ Source de vérité : le document du workshop (« Développement d'une Plateforme
 |---|---|
 | Fonctionnalité complète (catalogue, panier, paiement, confirmation) | Smoke test 28/28 ✅ + démo |
 | Qualité du code (lisibilité, organisation, gestion d'erreurs) | Architecture en couches, erreurs centralisées, ESLint sans erreur |
-| Pertinence des tests | 8 suites backend (105 tests) + 18 suites frontend (71 tests) + smoke E2E (55 contrôles) |
+| Pertinence des tests | 8 suites backend (105 tests) + 18 suites frontend (72 tests) + smoke E2E (55 contrôles) |
 | Pipeline CI/CD | `ci.yml` + `deploy.yml` |
 | Déploiement | Configurations prêtes + guide pas à pas |
 | Documentation | README complet, présent rapport, checklist, scénario de démo |
