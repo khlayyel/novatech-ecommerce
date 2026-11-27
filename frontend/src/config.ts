@@ -9,8 +9,10 @@ type PublicEnv = {
 
 function readViteEnv(): PublicEnv {
   try {
-    const meta = import.meta as unknown as { env?: PublicEnv } | undefined;
-    return meta?.env ?? {};
+    // `import.meta.env` doit rester une expression littérale : Vite la remplace
+    // statiquement à la compilation (un alias casserait l'injection).
+    // Sous Jest, Babel remplace `import.meta` par `{}` → repli sur les défauts.
+    return (import.meta.env as unknown as PublicEnv) ?? {};
   } catch {
     return {};
   }
