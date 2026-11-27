@@ -2226,10 +2226,44 @@ textarea.input {
 }
 
 .admin-footer {
-  padding: 1rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1.4rem;
   border-top: 1px solid var(--line);
+  background: var(--surface);
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.admin-footer__brand,
+.admin-footer__clock {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.admin-footer__brand svg,
+.admin-footer__clock svg {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.admin-footer a {
+  color: var(--accent-deep);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-footer a:hover {
+  text-decoration: underline;
+}
+
+.admin-footer time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .admin-grid {
@@ -2576,7 +2610,10 @@ textarea.input {
   }
 
   .admin-footer {
-    padding: 0.9rem 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.72rem;
   }
 }
 

@@ -4,6 +4,7 @@ import Logo from '../../components/Logo';
 import AdminIcon from '../../components/admin/AdminIcon';
 import type { AdminIconName } from '../../components/admin/AdminIcon';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import AdminFooter from '../../components/admin/AdminFooter';
 import LocaleSwitcher from '../../components/ui/LocaleSwitcher';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../i18n';
@@ -163,9 +164,7 @@ const AdminPage = () => {
           <Outlet />
         </main>
 
-        <footer className="admin-footer">
-          NovaTech Admin
-        </footer>
+        <AdminFooter />
       </div>
     </div>
   );
