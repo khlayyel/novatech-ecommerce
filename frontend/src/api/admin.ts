@@ -98,3 +98,16 @@ export const listAuditLogs = async (
   const { data } = await api.get<AuditLogsResponse>('/admin/audit', { params });
   return data;
 };
+
+/** Télécharge un export CSV protégé (l'API renvoie un blob). */
+export const downloadCsv = async (path: string, filename: string): Promise<void> => {
+  const { data } = await api.get<Blob>(path, { responseType: 'blob' });
+  const url = URL.createObjectURL(data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};

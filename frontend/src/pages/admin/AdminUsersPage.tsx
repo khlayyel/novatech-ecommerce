@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import EmptyState from '../../components/EmptyState';
 import Spinner from '../../components/Spinner';
-import { listUsers, updateUserRole } from '../../api/admin';
+import { downloadCsv, listUsers, updateUserRole } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { getErrorMessage } from '../../utils/request';
@@ -26,6 +26,7 @@ const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -111,6 +112,24 @@ const AdminUsersPage = () => {
             ))}
           </select>
           <span className="muted small">{users.length} compte(s)</span>
+          <button
+            type="button"
+            className="button button--outline button--sm"
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                await downloadCsv('/admin/export/users.csv', 'novatech-clients.csv');
+                showToast('Export des clients téléchargé.', 'success');
+              } catch (err) {
+                showToast(getErrorMessage(err, 'Export impossible.'), 'error');
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            {exporting ? 'Export…' : 'Exporter CSV'}
+          </button>
         </div>
       </div>
 

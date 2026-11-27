@@ -51,14 +51,14 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 3. **Produits** `/admin/products` : recherche, ouverture du formulaire, changement de famille/sous-famille, création d'un produit de test puis suppression.
 4. **Catégories** `/admin/categories` : renommer une famille → vérifier que le catalogue suit (mise à jour en cascade) ; tentative de suppression d'une famille utilisée → message `409`.
 5. **Stocks** `/admin/stock` : filtrer « stock faible », modifier un stock et enregistrer ; le catalogue reflète la nouvelle valeur.
-6. **Commandes** `/admin/orders` : passer une commande *payée* en **Expédiée** puis **Livrée** ; ouvrir le suivi côté client pour montrer la chronologie.
+6. **Commandes** `/admin/orders` : ouvrir **Détails** d'une commande (articles, dates), passer une commande *payée* en **Expédiée** puis **Livrée**, puis cliquer **Exporter CSV**.
 7. **Clients** `/admin/users` : promouvoir un compte en admin, puis le rétrograder.
 8. **Sécurité** `/admin/security` : posture de l'API et journal d'audit listant toutes les actions précédentes.
 9. Montrer qu'un client normal n'a pas le lien, est redirigé de `/admin` et reçoit `403` sur `/api/admin/stats`.
 
 ## 7. Qualité & DevOps (échange, ≈ 1 min)
 
-- `npm test` : montrer les 6 suites backend (80 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 11 suites frontend (42 tests, RTL).
+- `npm test` : montrer les 6 suites backend (84 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 11 suites frontend (42 tests, RTL).
 - `npm run smoke` : montrer le tableau de 55 vérifications dont le **paiement réel** et le **webhook signé**.
 - CI GitHub Actions : lint + tests + build à chaque push ; déploiement Render/Vercel sur `main` via secrets.
 - Docker : `docker compose up --build` → stack complète mongo/api/web.

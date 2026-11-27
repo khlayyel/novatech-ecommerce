@@ -424,3 +424,65 @@ describe('Catégories et sous-catégories (admin)', () => {
     expect(res.statusCode).toBe(403);
   });
 });
+
+describe('Exports CSV (admin)', () => {
+  it('exporte les commandes avec en-tête et statut', async () => {
+    const product = await createProduct();
+    const customer = await registerUser(app);
+    await Order.create({
+      ...orderPayload({ productId: product._id }),
+      user: customer.body.user.id,
+      totalAmount: 150
+    });
+    await Order.create(orderPayload({ productId: product._id, status: 'pending' }));
+
+    const admin = await loginAdmin(app);
+    const res = await request(app).get('/api/admin/export/orders.csv').set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/csv');
+    expect(res.headers['content-disposition']).toContain('novatech-commandes.csv');
+    expect(res.text).toContain('"Commande";"Date";"Client";"Email";"Statut"');
+    expect(res.text).toContain(customer.body.user.email);
+    expect(res.text).toContain('Invité');
+    expect(res.text.split('\r\n')).toHaveLength(3);
+  });
+
+  it('exporte les produits avec famille et valeur du stock', async () => {
+    await createProduct({ name: 'Produit Export', price: 25, stock: 4, subcategory: 'Accessoires' });
+    const admin = await loginAdmin(app);
+
+    const res = await request(app).get('/api/admin/export/products.csv').set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('"Référence";"Nom";"Famille";"Sous-famille";"Prix (EUR)";"Stock";"Valeur du stock"');
+    expect(res.text).toContain('Produit Export');
+    expect(res.text).toContain('Accessoires');
+    expect(res.text).toContain('100.00');
+  });
+
+  it('exporte les clients avec leurs dépenses', async () => {
+    const customer = await registerUser(app);
+    const product = await createProduct();
+    await Order.create({
+      ...orderPayload({ productId: product._id }),
+      user: customer.body.user.id,
+      totalAmount: 320
+    });
+    const admin = await loginAdmin(app);
+
+    const res = await request(app).get('/api/admin/export/users.csv').set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('"Nom";"Email";"Rôle";"Commandes";"Total dépensé');
+    expect(res.text).toContain(customer.body.user.email);
+    expect(res.text).toContain('320.00');
+  });
+
+  it('refuse l\'export à un client (403)', async () => {
+    const customer = await registerUser(app);
+    const res = await request(app).get('/api/admin/export/orders.csv').set(bearer(customer.body.token));
+
+    expect(res.statusCode).toBe(403);
+  });
+});

@@ -20,6 +20,11 @@ import {
   updateCategory,
   deleteCategory
 } from '../controllers/category.controller.js';
+import {
+  exportOrdersCsv,
+  exportProductsCsv,
+  exportUsersCsv
+} from '../controllers/export.controller.js';
 
 const router = Router();
 
@@ -45,5 +50,9 @@ router.get('/users', listAdminUsers);
 router.patch('/users/:id/role', updateUserRole);
 
 router.get('/audit', listAuditLogs);
+
+router.get('/export/orders.csv', exportOrdersCsv);
+router.get('/export/products.csv', exportProductsCsv);
+router.get('/export/users.csv', exportUsersCsv);
 
 export default router;

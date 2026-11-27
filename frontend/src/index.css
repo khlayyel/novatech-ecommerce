@@ -2558,3 +2558,35 @@ textarea.input {
     padding: 0.9rem 1rem;
   }
 }
+
+/* ── 18. Détail de commande (ligne dépliable) ──────────────────── */
+
+.admin-detail-row > td {
+  background: var(--bg);
+}
+
+.admin-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.admin-detail h4 {
+  margin-bottom: 0.6rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.admin-detail .order-meta {
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .admin-detail {
+    grid-template-columns: 1fr;
+  }
+}

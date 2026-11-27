@@ -140,6 +140,9 @@ Base : `http://localhost:5000/api`
 | GET | `/admin/users?search=&role=` | JWT **admin** | Comptes avec nombre de commandes et total dépensé | 200 / 403 |
 | PATCH | `/admin/users/:id/role` | JWT **admin** | Promotion / rétrogradation (garde-fous dernier admin) | 200 / 400 / 403 / 404 / 409 |
 | GET | `/admin/audit` | JWT **admin** | Journal des actions d'administration | 200 / 403 |
+| GET | `/admin/export/orders.csv` | JWT **admin** | Export CSV des commandes (séparateur `;`, BOM Excel FR) | 200 / 403 |
+| GET | `/admin/export/products.csv` | JWT **admin** | Export CSV du catalogue (famille, sous-famille, valeur du stock) | 200 / 403 |
+| GET | `/admin/export/users.csv` | JWT **admin** | Export CSV des clients et de leurs dépenses | 200 / 403 |
 
 ---
 
@@ -153,9 +156,11 @@ Un rôle `admin` ouvre `/admin`, protégé côté client **et** côté serveur :
 | `/admin/products` | Recherche, création, modification, suppression, sous-famille par produit |
 | `/admin/categories` | Familles et sous-familles : création, renommage (cascade), suppression avec garde-fou |
 | `/admin/stock` | Ajustement rapide du stock, filtres *stock faible / épuisé*, valeur d'inventaire |
-| `/admin/orders` | Toutes les commandes, filtrage par statut, passage *payée → expédiée → livrée* |
-| `/admin/users` | Comptes clients, commandes et total dépensé, promotion / rétrogradation |
+| `/admin/orders` | Toutes les commandes, filtrage par statut, détail dépliable (articles, dates), passage *payée → expédiée → livrée*, export CSV |
+| `/admin/users` | Comptes clients, commandes et total dépensé, promotion / rétrogradation, export CSV |
 | `/admin/security` | Posture de sécurité et journal d'audit horodaté de toutes les actions admin |
+
+Les écrans **Produits**, **Commandes** et **Clients** proposent un **export CSV** (séparateur `;`, BOM UTF-8) directement ouvrable dans Excel.
 
 Le rôle n'est pas embarqué dans le JWT : `requireAdmin` le relit en base à chaque requête, ce qui permet une révocation immédiate. Un client authentifié reçoit `403` sur `/api/admin/*`.
 
@@ -377,6 +382,7 @@ Détails complets : [`docs/DEMO-SOUTENANCE.md`](docs/DEMO-SOUTENANCE.md)
 ## 📚 Livrables académiques
 
 - [`RAPPORT-EXPERIENCE.md`](RAPPORT-EXPERIENCE.md) — court rapport de retour d'expérience.
+- [`docs/RAPPORT-FINAL.md`](docs/RAPPORT-FINAL.md) — rapport final de conformité (traçabilité, qualité, sécurité, déploiement, limites).
 - [`docs/CHECKLIST-EXIGENCES.md`](docs/CHECKLIST-EXIGENCES.md) — traçabilité module par module (exigence → fichiers → tests).
 - [`docs/DEMO-SOUTENANCE.md`](docs/DEMO-SOUTENANCE.md) — script de démonstration chronométré.
 

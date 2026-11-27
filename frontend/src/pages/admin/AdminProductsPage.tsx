@@ -6,6 +6,7 @@ import * as productsApi from '../../api/products';
 import {
   createProduct,
   deleteProduct,
+  downloadCsv,
   listCategories,
   updateProduct
 } from '../../api/admin';
@@ -50,6 +51,7 @@ const AdminProductsPage = () => {
   const [form, setForm] = useState<ProductForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -218,6 +220,24 @@ const AdminProductsPage = () => {
           <span className="muted small">
             {filtered.length} / {products.length} produit(s)
           </span>
+          <button
+            type="button"
+            className="button button--outline"
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                await downloadCsv('/admin/export/products.csv', 'novatech-produits.csv');
+                showToast('Export du catalogue téléchargé.', 'success');
+              } catch (err) {
+                showToast(getErrorMessage(err, 'Export impossible.'), 'error');
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            {exporting ? 'Export…' : 'Exporter CSV'}
+          </button>
           <button type="button" className="button button--primary" onClick={openCreate}>
             + Nouveau produit
           </button>
