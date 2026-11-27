@@ -3102,6 +3102,23 @@ textarea.input {
   flex: 1 1 100%;
 }
 
+.catalog__search {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.catalog__search .input {
+  width: 100%;
+  max-width: 360px;
+}
+
+@media (max-width: 720px) {
+  .catalog__search .input {
+    max-width: none;
+  }
+}
+
 .catalog__toolbar .field > span {
   font-size: 0.8rem;
 }

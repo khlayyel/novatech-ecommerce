@@ -220,14 +220,6 @@ const HomePage = () => {
           </div>
 
           <div className="catalog__controls">
-            <input
-              type="search"
-              className="input"
-              placeholder={t('home.search')}
-              aria-label={t('home.search')}
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-            />
             <select
               className="input input--select"
               aria-label={t('home.sort')}
@@ -239,6 +231,17 @@ const HomePage = () => {
               <option value="price-desc">{t('home.sortPriceDesc')}</option>
             </select>
           </div>
+        </div>
+
+        <div className="catalog__search">
+          <input
+            type="search"
+            className="input"
+            placeholder={t('home.search')}
+            aria-label={t('home.search')}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+          />
         </div>
 
         <ProductList
