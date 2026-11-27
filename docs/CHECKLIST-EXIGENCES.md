@@ -46,7 +46,7 @@ Source de vérité : le document du workshop (« Développement d'une Plateforme
 
 | # | Exigence | Implémentation | Vérification |
 |---|---|---|---|
-| 5.1 | Tests unitaires et d'intégration des API | 6 suites, 69 tests, MongoDB en mémoire | ✅ `npm test --prefix backend` |
+| 5.1 | Tests unitaires et d'intégration des API | 6 suites, 80 tests, MongoDB en mémoire | ✅ `npm test --prefix backend` |
 | 5.2 | Tests du service Stripe | Service moqué (`jest.unstable_mockModule`) | ✅ `checkout.test.js`, `webhook.test.js` |
 | 5.3 | Isolation des tests | `tests/setup-env.js` + base en mémoire + `clearTestDb` | ✅ |
 
@@ -73,7 +73,7 @@ Source de vérité : le document du workshop (« Développement d'une Plateforme
 
 | # | Exigence | Implémentation | Vérification |
 |---|---|---|---|
-| 8.1 | Tests de composants | 10 suites (ProductCard, ProductList, ProductDetailPage, CartPage, CheckoutForm, LoginPage, OrderDetailPage, App, garde admin, contexte panier) | ✅ `npm test --prefix frontend` |
+| 8.1 | Tests de composants | 11 suites (ProductCard, ProductList, ProductDetailPage, CartPage, CheckoutForm, LoginPage, OrderDetailPage, App, garde admin, coquille admin, contexte panier) | ✅ `npm test --prefix frontend` |
 | 8.2 | Rendu conditionnel | Chargement (skeletons), vide, erreur | ✅ tests |
 | 8.3 | Interactions utilisateur | Ajout, quantités, suppression, soumission formulaires | ✅ tests |
 | 8.4 | Gestion des erreurs | Alertes role="alert", bannières, toasts | ✅ tests |
@@ -110,7 +110,7 @@ Source de vérité : le document du workshop (« Développement d'une Plateforme
 |---|---|
 | Fonctionnalité complète (catalogue, panier, paiement, confirmation) | Smoke test 28/28 ✅ + démo |
 | Qualité du code (lisibilité, organisation, gestion d'erreurs) | Architecture en couches, erreurs centralisées, ESLint sans erreur |
-| Pertinence des tests | 6 suites backend (69 tests) + 10 suites frontend (40 tests) + smoke E2E (55 contrôles) |
+| Pertinence des tests | 6 suites backend (80 tests) + 11 suites frontend (42 tests) + smoke E2E (55 contrôles) |
 | Pipeline CI/CD | `ci.yml` + `deploy.yml` |
 | Déploiement | Configurations prêtes + guide pas à pas |
 | Documentation | README complet, présent rapport, checklist, scénario de démo |

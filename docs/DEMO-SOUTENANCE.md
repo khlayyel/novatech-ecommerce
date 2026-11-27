@@ -44,17 +44,21 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 2. Le formulaire affiche l'erreur Stripe ; la commande passe en *Paiement échoué* ; **le stock n'a pas bougé**.
 3. Repayer avec 4242 → succès.
 
-## 6 bis. Espace d'administration (≈ 1 min)
+## 6 bis. Espace d'administration (≈ 2 min)
 
 1. Se déconnecter, puis se connecter avec `admin@novatech.fr` / `Admin1234!` → le lien **Administration** apparaît dans la navbar.
-2. `/admin` : chiffre d'affaires, commandes par statut, produits en stock faible.
-3. `/admin/products` : modifier le stock d'un produit (le changement est visible immédiatement au catalogue) puis le remettre.
-4. `/admin/orders` : passer une commande *payée* en **Expédiée** puis **Livrée** ; ouvrir le suivi côté client pour montrer la chronologie mise à jour.
-5. Montrer qu'un client normal n'a pas le lien et reçoit une redirection / un `403` sur `/api/admin/stats`.
+2. **Tableau de bord** `/admin` : CA sur 14 jours (histogramme), répartition des commandes (donut), meilleures ventes, valeur du stock par famille.
+3. **Produits** `/admin/products` : recherche, ouverture du formulaire, changement de famille/sous-famille, création d'un produit de test puis suppression.
+4. **Catégories** `/admin/categories` : renommer une famille → vérifier que le catalogue suit (mise à jour en cascade) ; tentative de suppression d'une famille utilisée → message `409`.
+5. **Stocks** `/admin/stock` : filtrer « stock faible », modifier un stock et enregistrer ; le catalogue reflète la nouvelle valeur.
+6. **Commandes** `/admin/orders` : passer une commande *payée* en **Expédiée** puis **Livrée** ; ouvrir le suivi côté client pour montrer la chronologie.
+7. **Clients** `/admin/users` : promouvoir un compte en admin, puis le rétrograder.
+8. **Sécurité** `/admin/security` : posture de l'API et journal d'audit listant toutes les actions précédentes.
+9. Montrer qu'un client normal n'a pas le lien, est redirigé de `/admin` et reçoit `403` sur `/api/admin/stats`.
 
 ## 7. Qualité & DevOps (échange, ≈ 1 min)
 
-- `npm test` : montrer les 6 suites backend (Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 10 suites frontend (RTL).
+- `npm test` : montrer les 6 suites backend (80 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 11 suites frontend (42 tests, RTL).
 - `npm run smoke` : montrer le tableau de 55 vérifications dont le **paiement réel** et le **webhook signé**.
 - CI GitHub Actions : lint + tests + build à chaque push ; déploiement Render/Vercel sur `main` via secrets.
 - Docker : `docker compose up --build` → stack complète mongo/api/web.

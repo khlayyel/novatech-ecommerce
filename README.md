@@ -47,11 +47,11 @@ novatech-ecommerce/
 ├── backend/                    # API REST (Express + Mongoose + Stripe)
 │   ├── src/
 │   │   ├── config/             # env.js (config centralisée), db.js (connexion)
-│   │   ├── models/             # Product, Cart, Order, User (Mongoose)
-│   │   ├── controllers/        # produit, panier, commande, authentification, administration
-│   │   ├── routes/             # produit, panier, commande, auth, admin
-│   │   ├── middleware/         # auth (JWT), cart (X-Cart-Id), errors, rate limits
-│   │   ├── services/           # stripe.service, order.service (idempotence)
+│   │   ├── models/             # Product, Category, Cart, Order, User, AuditLog
+│   │   ├── controllers/        # produit, catégorie, panier, commande, auth, admin
+│   │   ├── routes/             # produit, catégorie, panier, commande, auth, admin
+│   │   ├── middleware/         # auth (JWT + admin), cart (X-Cart-Id), errors, rate limits
+│   │   ├── services/           # stripe.service, order.service (idempotence), audit.service
 │   │   ├── utils/              # asyncHandler
 │   │   ├── app.js              # assemblage Express (CORS, helmet, routes)
 │   │   ├── server.js           # démarrage + arrêt propre
@@ -62,11 +62,12 @@ novatech-ecommerce/
 │   ├── src/
 │   │   ├── api/                # client Axios central (+ produits, panier, commandes, auth, admin)
 │   │   ├── components/         # Navbar, ProductCard, CheckoutForm, ProtectedRoute…
+│   │   ├── components/admin/   # AdminIcon, BarChart (graphiques sans dépendance)
 │   │   ├── context/            # AuthContext (JWT), CartContext, ToastContext
 │   │   ├── pages/              # Accueil, fiche produit, panier, paiement, suivi, auth
-│   │   ├── pages/admin/        # tableau de bord, produits, commandes (rôle admin)
+│   │   ├── pages/admin/        # tableau de bord, produits, catégories, stocks, commandes, clients, sécurité
 │   │   ├── types/              # types partagés
-│   │   └── __tests__/          # 10 suites Jest/RTL
+│   │   └── __tests__/          # 11 suites Jest/RTL
 │   └── public/images/products/ # 24 illustrations SVG du catalogue
 ├── .github/workflows/          # ci.yml (tests) + deploy.yml (CD)
 ├── Dockerfile.backend / Dockerfile.frontend / nginx.conf
@@ -82,7 +83,13 @@ novatech-ecommerce/
 ## 🗄️ Modèle de données (Mongoose)
 
 ### Product
-`name` · `description` · `price` (euros, converti en centimes pour Stripe) · `category` (enum de 6 catégories) · `stock` (entier ≥ 0) · `imageUrl` · `timestamps`
+`name` · `description` · `price` (euros, converti en centimes pour Stripe) · `category` (nom de famille) · `subcategory` (sous-famille, optionnelle) · `stock` (entier ≥ 0) · `imageUrl` · `timestamps`
+
+### Category — familles et sous-familles
+`name` (unique) · `description` · `subcategories[]` · `timestamps` — renommer une famille met à jour en cascade les produits qui la référencent.
+
+### AuditLog — piste d'audit de l'administration
+`actor?` · `actorEmail` · `action` · `target` · `meta` · `ip` · `createdAt`
 
 ### Cart — panier invité **ou** utilisateur
 `user` (réf. User, unique sparse) **ou** `sessionId` (en-tête `X-Cart-Id`, unique sparse) · `items[]` (réf. Product + quantité 1–99) · `expiresAt` (**index TTL : expiration automatique après 7 jours d'inactivité**)
@@ -124,6 +131,15 @@ Base : `http://localhost:5000/api`
 | POST | `/admin/products` | JWT **admin** | Créer un produit | 201 / 400 / 403 |
 | PUT | `/admin/products/:id` | JWT **admin** | Modifier un produit | 200 / 400 / 403 / 404 |
 | DELETE | `/admin/products/:id` | JWT **admin** | Supprimer un produit | 200 / 403 / 404 |
+| GET | `/categories` | — | Familles et sous-familles publiques | 200 |
+| GET | `/admin/categories` | JWT **admin** | Liste complète des familles | 200 / 403 |
+| POST | `/admin/categories` | JWT **admin** | Créer une famille (sous-familles incluses) | 201 / 400 / 403 |
+| PUT | `/admin/categories/:id` | JWT **admin** | Renommer / éditer (renommage en cascade sur les produits) | 200 / 400 / 403 / 404 |
+| DELETE | `/admin/categories/:id` | JWT **admin** | Supprimer (refusé si des produits l'utilisent) | 200 / 403 / 404 / 409 |
+| GET | `/admin/analytics?days=14` | JWT **admin** | Séries de CA, répartition, top ventes, valeur du stock | 200 / 403 |
+| GET | `/admin/users?search=&role=` | JWT **admin** | Comptes avec nombre de commandes et total dépensé | 200 / 403 |
+| PATCH | `/admin/users/:id/role` | JWT **admin** | Promotion / rétrogradation (garde-fous dernier admin) | 200 / 400 / 403 / 404 / 409 |
+| GET | `/admin/audit` | JWT **admin** | Journal des actions d'administration | 200 / 403 |
 
 ---
 
@@ -133,9 +149,13 @@ Un rôle `admin` ouvre `/admin`, protégé côté client **et** côté serveur :
 
 | Écran / route | Contenu |
 |---|---|
-| `/admin` | Indicateurs (chiffre d'affaires, commandes par statut, stocks faibles, clients) et dernières commandes |
-| `/admin/products` | Création, modification et suppression de produits, ajustement des stocks |
+| `/admin` | Indicateurs, courbe de CA sur 14 jours, répartition des commandes, meilleures ventes, valeur du stock, dernières commandes |
+| `/admin/products` | Recherche, création, modification, suppression, sous-famille par produit |
+| `/admin/categories` | Familles et sous-familles : création, renommage (cascade), suppression avec garde-fou |
+| `/admin/stock` | Ajustement rapide du stock, filtres *stock faible / épuisé*, valeur d'inventaire |
 | `/admin/orders` | Toutes les commandes, filtrage par statut, passage *payée → expédiée → livrée* |
+| `/admin/users` | Comptes clients, commandes et total dépensé, promotion / rétrogradation |
+| `/admin/security` | Posture de sécurité et journal d'audit horodaté de toutes les actions admin |
 
 Le rôle n'est pas embarqué dans le JWT : `requireAdmin` le relit en base à chaque requête, ce qui permet une révocation immédiate. Un client authentifié reçoit `403` sur `/api/admin/*`.
 
@@ -257,7 +277,7 @@ npm test --prefix frontend
 | `backend/tests/checkout.test.js` | Montant **recalculé serveur** (falsification ignorée), stock insuffisant 409, confirmation idempotente, autorisations |
 | `backend/tests/webhook.test.js` | Signature invalide 400, `paid` + décrémentation + panier vidé, **rejeu idempotent**, paiement échoué |
 | `backend/tests/admin.test.js` | 401/403, statistiques, CRUD produits, transitions de statut `paid → shipped → delivered` |
-| `frontend/src/__tests__/*.tsx` | Catalogue, fiche produit, panier, formulaire Stripe, authentification, garde admin, suivi, 404 |
+| `frontend/src/__tests__/*.tsx` | Catalogue, fiche produit, panier, formulaire Stripe, authentification, garde admin, coquille d'administration, suivi, 404 |
 
 Le backend est testé avec **MongoDB en mémoire** (`mongodb-memory-server`) et le service Stripe **moqué** : aucun appel réseau, aucune base réelle. Le frontend est testé en jsdom avec React Testing Library.
 
