@@ -48,8 +48,8 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 
 1. Se déconnecter, puis se connecter avec `admin@novatech.fr` / `Admin1234!` → le lien **Administration** apparaît dans la navbar.
 2. **Tableau de bord** `/admin` : CA sur 14 jours (histogramme), répartition des commandes (donut), meilleures ventes, valeur du stock par famille. Replier un panneau puis recharger la page pour montrer que l'état est mémorisé. Cliquer sur le **bouton hamburger** de la topbar : la barre latérale passe en rail d'icônes, puis la déplier à nouveau.
-3. **Produits** `/admin/products` : filtrer via la carte *Filtres* repliable, trier par prix en cliquant l'en-tête, passer la pagination à 5 puis revenir à 10, ouvrir le formulaire et créer un produit de test puis le supprimer.
-4. **Catégories** `/admin/categories` : renommer une famille → vérifier que le catalogue suit (mise à jour en cascade) ; tentative de suppression d'une famille utilisée → message `409`.
+3. **Produits** `/admin/products` : filtrer via la carte *Filtres* repliable, trier par prix en cliquant l'en-tête, passer la pagination à 5 puis revenir à 10. Cliquer **+ Nouveau produit** (page dédiée), créer un produit, puis **Modifier** pour montrer le formulaire prérempli ; enfin le supprimer.
+4. **Catégories** `/admin/categories` : tableau des familles, ouvrir **Modifier** (formulaire prérempli), renommer une famille → vérifier que le catalogue suit (mise à jour en cascade) ; tentative de suppression d'une famille utilisée → message `409`.
 5. **Stocks** `/admin/stock` : filtrer « stock faible », modifier un stock et enregistrer ; le catalogue reflète la nouvelle valeur.
 6. **Commandes** `/admin/orders` : ouvrir **Détails** d'une commande (articles, dates), passer une commande *payée* en **Expédiée** puis **Livrée**, puis cliquer **Exporter CSV**.
 7. **Clients** `/admin/users` : promouvoir un compte en admin, puis le rétrograder.
@@ -58,7 +58,7 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 
 ## 7. Qualité & DevOps (échange, ≈ 1 min)
 
-- `npm test` : montrer les 6 suites backend (84 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 13 suites frontend (50 tests, RTL).
+- `npm test` : montrer les 6 suites backend (86 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 14 suites frontend (53 tests, RTL).
 - `npm run smoke` : montrer le tableau de 55 vérifications dont le **paiement réel** et le **webhook signé**.
 - CI GitHub Actions : lint + tests + build à chaque push ; déploiement Render/Vercel sur `main` via secrets.
 - Docker : `docker compose up --build` → stack complète mongo/api/web.

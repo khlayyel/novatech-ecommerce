@@ -23,13 +23,13 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const PAGE_TITLES: Record<string, string> = {
-  '/admin': 'Tableau de bord',
   '/admin/products': 'Produits',
   '/admin/categories': 'Catégories & sous-catégories',
   '/admin/stock': 'Gestion des stocks',
   '/admin/orders': 'Commandes',
   '/admin/users': 'Clients & rôles',
-  '/admin/security': 'Sécurité & journal'
+  '/admin/security': 'Sécurité & journal',
+  '/admin': 'Tableau de bord'
 };
 
 const COLLAPSE_KEY = 'novatech.admin.sidebar-collapsed';
@@ -70,7 +70,11 @@ const AdminPage = () => {
     });
   };
 
-  const title = PAGE_TITLES[location.pathname] || 'Administration';
+  const matchedPath =
+    Object.keys(PAGE_TITLES)
+      .sort((left, right) => right.length - left.length)
+      .find((path) => location.pathname.startsWith(path)) ?? '/admin';
+  const title = PAGE_TITLES[matchedPath];
 
   const handleLogout = () => {
     logout();

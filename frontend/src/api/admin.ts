@@ -66,6 +66,11 @@ export const listCategories = async (): Promise<CategoryInfo[]> => {
   return data;
 };
 
+export const getCategory = async (id: string): Promise<CategoryInfo> => {
+  const { data } = await api.get<CategoryInfo>(`/admin/categories/${id}`);
+  return data;
+};
+
 export const createCategory = async (input: CategoryInput): Promise<CategoryInfo> => {
   const { data } = await api.post<CategoryInfo>('/admin/categories', input);
   return data;

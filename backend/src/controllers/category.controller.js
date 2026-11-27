@@ -1,5 +1,6 @@
 import Category from '../models/Category.js';
 import Product from '../models/Product.js';
+import mongoose from 'mongoose';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../middleware/error.js';
 import { logAdminAction } from '../services/audit.service.js';
@@ -38,6 +39,20 @@ const normalizeSubcategories = (input) => {
 export const listCategories = asyncHandler(async (_req, res) => {
   const categories = await Category.find().sort({ name: 1 });
   res.json(categories);
+});
+
+/** GET /api/admin/categories/:id — détail d'une famille (préremplissage du formulaire). */
+export const getCategoryById = asyncHandler(async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    throw new ApiError(400, 'Identifiant de catégorie invalide');
+  }
+
+  const category = await Category.findById(req.params.id);
+  if (!category) {
+    throw new ApiError(404, 'Catégorie introuvable');
+  }
+
+  res.json(category);
 });
 
 /** POST /api/admin/categories */

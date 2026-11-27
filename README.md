@@ -68,7 +68,7 @@ novatech-ecommerce/
 │   │   ├── pages/              # Accueil, fiche produit, panier, paiement, suivi, auth
 │   │   ├── pages/admin/        # tableau de bord, produits, catégories, stocks, commandes, clients, sécurité
 │   │   ├── types/              # types partagés
-│   │   └── __tests__/          # 13 suites Jest/RTL
+│   │   └── __tests__/          # 14 suites Jest/RTL
 │   └── public/images/products/ # 24 illustrations SVG du catalogue
 ├── .github/workflows/          # ci.yml (tests) + deploy.yml (CD)
 ├── Dockerfile.backend / Dockerfile.frontend / nginx.conf
@@ -154,14 +154,16 @@ Un rôle `admin` ouvre `/admin`, protégé côté client **et** côté serveur :
 | Écran / route | Contenu |
 |---|---|
 | `/admin` | Indicateurs, courbe de CA sur 14 jours, répartition des commandes, meilleures ventes, valeur du stock, dernières commandes |
-| `/admin/products` | Recherche, création, modification, suppression, sous-famille par produit |
-| `/admin/categories` | Familles et sous-familles : création, renommage (cascade), suppression avec garde-fou |
+| `/admin/products` | Liste, recherche, suppression · **création** `/admin/products/new` · **édition** `/admin/products/:id/edit` (formulaire prérempli) |
+| `/admin/categories` | Liste en tableau, suppression · **création** `/admin/categories/new` · **édition** `/admin/categories/:id/edit` (formulaire prérempli, renommage en cascade) |
 | `/admin/stock` | Ajustement rapide du stock, filtres *stock faible / épuisé*, valeur d'inventaire |
 | `/admin/orders` | Toutes les commandes, filtrage par statut, détail dépliable (articles, dates), passage *payée → expédiée → livrée*, export CSV |
 | `/admin/users` | Comptes clients, commandes et total dépensé, promotion / rétrogradation, export CSV |
 | `/admin/security` | Posture de sécurité et journal d'audit horodaté de toutes les actions admin |
 
 Les écrans **Produits**, **Commandes** et **Clients** proposent un **export CSV** (séparateur `;`, BOM UTF-8) directement ouvrable dans Excel.
+
+**CRUD en pages dédiées** : chaque ajout et chaque modification ouvre sa propre page (`/new`, `/:id/edit`) avec son endpoint dédié (`POST`, `PUT`, `DELETE`). Le formulaire d'édition est chargé depuis l'API et **prérempli avec les données réelles** de l'élément ; l'annulation ramène à la liste.
 
 **Standard d'interface** : chaque page de l'admin est composée de **panneaux repliables** (`Panel` : filtres, tableau, formulaire) dont l'état est mémorisé par le navigateur. La **barre latérale se replie** en rail d'icônes via le bouton de la topbar (état mémorisé ; tiroir sur mobile). Tous les tableaux utilisent le même composant `DataTable` : tri par clic sur n'importe quel en-tête de colonne, pagination **10 lignes par défaut** avec choix 5 / 10 / 15 / 20 / 50 (choix mémorisé par tableau) et compteur « X–Y sur N ».
 

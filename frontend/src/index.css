@@ -2796,6 +2796,31 @@ textarea.input {
   vertical-align: middle;
 }
 
+.form-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 58px;
+  padding: 0.5rem 0.6rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.form-preview img {
+  width: 76px;
+  height: 57px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  object-fit: cover;
+}
+
+.form-preview strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
 /* Grilles de filtres dans les panneaux */
 .filter-grid {
   display: grid;

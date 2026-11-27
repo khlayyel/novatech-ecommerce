@@ -1,44 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Panel from '../../components/ui/Panel';
+import DataTable from '../../components/ui/DataTable';
+import type { Column } from '../../components/ui/DataTable';
 import Spinner from '../../components/Spinner';
-import {
-  createCategory,
-  deleteCategory,
-  listCategories,
-  updateCategory
-} from '../../api/admin';
+import { deleteCategory, listCategories } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import type { CategoryInfo } from '../../types';
 
-interface CategoryForm {
-  name: string;
-  description: string;
-  subcategories: string;
-}
-
-const EMPTY_FORM: CategoryForm = { name: '', description: '', subcategories: '' };
-
-const toSubcategoryInput = (list: string[]) => list.join(', ');
-const parseSubcategories = (value: string) =>
-  value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-/** Familles et sous-familles : filtres repliables, création, renommage, suppression. */
+/** Familles et sous-familles : tableau triable/paginé, création et édition en pages dédiées. */
 const AdminCategoriesPage = () => {
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<CategoryInfo | null>(null);
-  const [form, setForm] = useState<CategoryForm>(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -64,63 +43,10 @@ const AdminCategoriesPage = () => {
     return categories.filter(
       (category) =>
         category.name.toLowerCase().includes(term) ||
+        category.description.toLowerCase().includes(term) ||
         category.subcategories.some((name) => name.toLowerCase().includes(term))
     );
   }, [categories, search]);
-
-  const openCreate = () => {
-    setEditing(null);
-    setForm(EMPTY_FORM);
-    setFormOpen(true);
-  };
-
-  const openEdit = (category: CategoryInfo) => {
-    setEditing(category);
-    setForm({
-      name: category.name,
-      description: category.description,
-      subcategories: toSubcategoryInput(category.subcategories)
-    });
-    setFormOpen(true);
-  };
-
-  const closeForm = () => {
-    setFormOpen(false);
-    setEditing(null);
-    setForm(EMPTY_FORM);
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (form.name.trim().length < 2) {
-      showToast('Le nom doit contenir au moins 2 caractères.', 'error');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const payload = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        subcategories: parseSubcategories(form.subcategories)
-      };
-
-      if (editing) {
-        await updateCategory(editing._id, payload);
-        showToast(`Famille « ${payload.name} » mise à jour.`, 'success');
-      } else {
-        await createCategory(payload);
-        showToast(`Famille « ${payload.name} » créée.`, 'success');
-      }
-
-      closeForm();
-      await load();
-    } catch (err) {
-      showToast(getErrorMessage(err, 'Enregistrement impossible.'), 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleDelete = async (category: CategoryInfo) => {
     const confirmed = window.confirm(`Supprimer la famille « ${category.name} » ?`);
@@ -130,7 +56,6 @@ const AdminCategoriesPage = () => {
     try {
       await deleteCategory(category._id);
       showToast(`Famille « ${category.name} » supprimée.`, 'success');
-      if (editing?._id === category._id) closeForm();
       await load();
     } catch (err) {
       showToast(getErrorMessage(err, 'Suppression impossible.'), 'error');
@@ -138,6 +63,73 @@ const AdminCategoriesPage = () => {
       setDeletingId(null);
     }
   };
+
+  const columns: Column<CategoryInfo>[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        label: 'Famille',
+        sortValue: (category) => category.name,
+        render: (category) => <strong>{category.name}</strong>
+      },
+      {
+        key: 'description',
+        label: 'Description',
+        sortValue: (category) => category.description,
+        render: (category) =>
+          category.description ? (
+            <span className="muted">{category.description}</span>
+          ) : (
+            <span className="muted small">—</span>
+          )
+      },
+      {
+        key: 'subcategories',
+        label: 'Sous-familles',
+        sortValue: (category) => category.subcategories.length,
+        render: (category) =>
+          category.subcategories.length === 0 ? (
+            <span className="muted small">—</span>
+          ) : (
+            <ul className="chip-row chip-row--static">
+              {category.subcategories.slice(0, 4).map((name) => (
+                <li key={name} className="chip chip--static">{name}</li>
+              ))}
+              {category.subcategories.length > 4 && (
+                <li className="chip chip--static">+{category.subcategories.length - 4}</li>
+              )}
+            </ul>
+          )
+      },
+      {
+        key: 'actions',
+        label: 'Actions',
+        align: 'right',
+        sortable: false,
+        render: (category) => (
+          <div className="admin-row-actions">
+            <button
+              type="button"
+              className="button button--ghost button--sm"
+              onClick={() => navigate(`/admin/categories/${category._id}/edit`)}
+            >
+              Modifier
+            </button>
+            <button
+              type="button"
+              className="button button--danger-ghost button--sm"
+              onClick={() => handleDelete(category)}
+              disabled={deletingId === category._id}
+            >
+              {deletingId === category._id ? 'Suppression…' : 'Supprimer'}
+            </button>
+          </div>
+        )
+      }
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [deletingId]
+  );
 
   if (loading && categories.length === 0) {
     return (
@@ -162,7 +154,7 @@ const AdminCategoriesPage = () => {
     <div className="admin-panel">
       <Panel
         title="Filtres"
-        subtitle="Rechercher une famille ou une sous-famille"
+        subtitle="Rechercher une famille, une description ou une sous-famille"
         storageKey="categories-filters"
         actions={<span className="muted small">{filtered.length} / {categories.length} famille(s)</span>}
       >
@@ -172,7 +164,7 @@ const AdminCategoriesPage = () => {
             <input
               type="search"
               className="input"
-              placeholder="Ordinateurs, Portables…"
+              placeholder="Ordinateurs, Portables, moniteurs…"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
@@ -183,108 +175,26 @@ const AdminCategoriesPage = () => {
       <Panel
         title="Familles et sous-familles"
         subtitle="Renommer une famille met à jour les produits associés"
-        storageKey="categories-grid"
+        storageKey="categories-table"
+        bodyClassName="panel__body--flush"
         actions={
-          <button type="button" className="button button--primary button--sm" onClick={openCreate}>
+          <button
+            type="button"
+            className="button button--primary button--sm"
+            onClick={() => navigate('/admin/categories/new')}
+          >
             + Nouvelle famille
           </button>
         }
       >
-        {filtered.length === 0 ? (
-          <p className="muted">Aucune famille ne correspond à cette recherche.</p>
-        ) : (
-          <div className="category-grid">
-            {filtered.map((category) => (
-              <article key={category._id} className="category-card">
-                <header className="category-card__head">
-                  <h3>{category.name}</h3>
-                  <span className="badge-soft">{category.subcategories.length} sous-famille(s)</span>
-                </header>
-
-                {category.description && <p className="muted small">{category.description}</p>}
-
-                {category.subcategories.length > 0 ? (
-                  <ul className="chip-row chip-row--static">
-                    {category.subcategories.map((name) => (
-                      <li key={name} className="chip chip--static">{name}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="muted small">Aucune sous-famille.</p>
-                )}
-
-                <footer className="category-card__actions">
-                  <button type="button" className="button button--ghost button--sm" onClick={() => openEdit(category)}>
-                    Modifier
-                  </button>
-                  <button
-                    type="button"
-                    className="button button--danger-ghost button--sm"
-                    onClick={() => handleDelete(category)}
-                    disabled={deletingId === category._id}
-                  >
-                    {deletingId === category._id ? 'Suppression…' : 'Supprimer'}
-                  </button>
-                </footer>
-              </article>
-            ))}
-          </div>
-        )}
+        <DataTable
+          columns={columns}
+          rows={filtered}
+          rowKey={(category) => category._id}
+          pageSizeKey="admin-categories"
+          emptyLabel="Aucune famille ne correspond à cette recherche."
+        />
       </Panel>
-
-      {formOpen && (
-        <Panel
-          title={editing ? 'Modifier la famille' : 'Nouvelle famille'}
-          subtitle={editing ? editing.name : 'Nom, description et sous-familles'}
-          storageKey="categories-form"
-          actions={
-            <button type="button" className="button button--ghost button--sm" onClick={closeForm}>
-              Fermer
-            </button>
-          }
-        >
-          <form onSubmit={handleSubmit}>
-            <div className="admin-form__grid">
-              <label className="field">
-                <span>Nom</span>
-                <input
-                  className="input"
-                  value={form.name}
-                  onChange={(event) => setForm({ ...form, name: event.target.value })}
-                  required
-                  maxLength={60}
-                />
-              </label>
-
-              <label className="field">
-                <span>Description</span>
-                <input
-                  className="input"
-                  value={form.description}
-                  onChange={(event) => setForm({ ...form, description: event.target.value })}
-                  maxLength={240}
-                />
-              </label>
-
-              <label className="field admin-form__wide">
-                <span>Sous-familles (séparées par des virgules)</span>
-                <input
-                  className="input"
-                  value={form.subcategories}
-                  onChange={(event) => setForm({ ...form, subcategories: event.target.value })}
-                  placeholder="Portables, Bureaux, Mini PC"
-                />
-              </label>
-            </div>
-
-            <div className="admin-form__actions">
-              <button type="submit" className="button button--primary" disabled={saving}>
-                {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer la famille'}
-              </button>
-            </div>
-          </form>
-        </Panel>
-      )}
     </div>
   );
 };

@@ -361,6 +361,28 @@ describe('Catégories et sous-catégories (admin)', () => {
     expect(res.body[0].subcategories).toEqual(['Portables']);
   });
 
+  it('retourne une famille par identifiant (préremplissage du formulaire)', async () => {
+    const category = await Category.create({ name: 'Écrans', subcategories: ['4K', 'Full HD'] });
+    const admin = await loginAdmin(app);
+
+    const res = await request(app)
+      .get(`/api/admin/categories/${category._id}`)
+      .set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.name).toBe('Écrans');
+    expect(res.body.subcategories).toEqual(['4K', 'Full HD']);
+  });
+
+  it('renvoie 404 pour une famille inconnue', async () => {
+    const admin = await loginAdmin(app);
+    const res = await request(app)
+      .get(`/api/admin/categories/${new mongoose.Types.ObjectId()}`)
+      .set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(404);
+  });
+
   it('crée une famille avec ses sous-familles', async () => {
     const admin = await loginAdmin(app);
     const res = await request(app)

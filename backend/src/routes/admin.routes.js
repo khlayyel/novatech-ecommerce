@@ -16,6 +16,7 @@ import {
 } from '../controllers/product.controller.js';
 import {
   listCategories,
+  getCategoryById,
   createCategory,
   updateCategory,
   deleteCategory
@@ -42,6 +43,7 @@ router.put('/products/:id', updateProduct);
 router.delete('/products/:id', deleteProduct);
 
 router.get('/categories', listCategories);
+router.get('/categories/:id', getCategoryById);
 router.post('/categories', createCategory);
 router.put('/categories/:id', updateCategory);
 router.delete('/categories/:id', deleteCategory);

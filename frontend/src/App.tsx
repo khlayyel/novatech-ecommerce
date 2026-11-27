@@ -15,8 +15,10 @@ import NotFoundPage from './pages/NotFoundPage';
 import AdminPage from './pages/admin/AdminPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminProductsPage from './pages/admin/AdminProductsPage';
+import AdminProductFormPage from './pages/admin/AdminProductFormPage';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage';
 import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
+import AdminCategoryFormPage from './pages/admin/AdminCategoryFormPage';
 import AdminStockPage from './pages/admin/AdminStockPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminSecurityPage from './pages/admin/AdminSecurityPage';
@@ -61,7 +63,11 @@ const App = () => {
         >
           <Route index element={<AdminDashboardPage />} />
           <Route path="products" element={<AdminProductsPage />} />
+          <Route path="products/new" element={<AdminProductFormPage />} />
+          <Route path="products/:id/edit" element={<AdminProductFormPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="categories/new" element={<AdminCategoryFormPage />} />
+          <Route path="categories/:id/edit" element={<AdminCategoryFormPage />} />
           <Route path="stock" element={<AdminStockPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="users" element={<AdminUsersPage />} />
