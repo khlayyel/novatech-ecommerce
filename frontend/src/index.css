@@ -2852,6 +2852,31 @@ textarea.input {
   font-size: 0.8rem;
 }
 
+/* ── 22. Internationalisation (sélecteur de langue + RTL) ───────── */
+
+.locale-switcher {
+  width: auto;
+  min-width: 104px;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.85rem;
+}
+
+.admin-topbar__user .locale-switcher {
+  margin-right: 0.35rem;
+}
+
+[dir='rtl'] .admin-topbar__user .locale-switcher {
+  margin-right: 0;
+  margin-left: 0.35rem;
+}
+
+[dir='rtl'] .footer__list,
+[dir='rtl'] .navbar__links,
+[dir='rtl'] .admin-sidebar__nav,
+[dir='rtl'] .breadcrumb {
+  direction: rtl;
+}
+
 /* Grilles de filtres dans les panneaux */
 .filter-grid {
   display: grid;

@@ -3,33 +3,35 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import Logo from '../../components/Logo';
 import AdminIcon from '../../components/admin/AdminIcon';
 import type { AdminIconName } from '../../components/admin/AdminIcon';
+import LocaleSwitcher from '../../components/ui/LocaleSwitcher';
 import { useAuth } from '../../context/AuthContext';
+import { useI18n } from '../../i18n';
 
 interface NavItem {
   to: string;
-  label: string;
+  labelKey: string;
   icon: AdminIconName;
   end?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/admin', label: 'Tableau de bord', icon: 'dashboard', end: true },
-  { to: '/admin/products', label: 'Produits', icon: 'products' },
-  { to: '/admin/categories', label: 'Catégories', icon: 'categories' },
-  { to: '/admin/stock', label: 'Stocks', icon: 'stock' },
-  { to: '/admin/orders', label: 'Commandes', icon: 'orders' },
-  { to: '/admin/users', label: 'Clients', icon: 'users' },
-  { to: '/admin/security', label: 'Sécurité', icon: 'security' }
+  { to: '/admin', labelKey: 'admin.nav.dashboard', icon: 'dashboard', end: true },
+  { to: '/admin/products', labelKey: 'admin.nav.products', icon: 'products' },
+  { to: '/admin/categories', labelKey: 'admin.nav.categories', icon: 'categories' },
+  { to: '/admin/stock', labelKey: 'admin.nav.stock', icon: 'stock' },
+  { to: '/admin/orders', labelKey: 'admin.nav.orders', icon: 'orders' },
+  { to: '/admin/users', labelKey: 'admin.nav.users', icon: 'users' },
+  { to: '/admin/security', labelKey: 'admin.nav.security', icon: 'security' }
 ];
 
 const PAGE_TITLES: Record<string, string> = {
-  '/admin/products': 'Produits',
-  '/admin/categories': 'Catégories & sous-catégories',
-  '/admin/stock': 'Gestion des stocks',
-  '/admin/orders': 'Commandes',
-  '/admin/users': 'Clients & rôles',
-  '/admin/security': 'Sécurité & journal',
-  '/admin': 'Tableau de bord'
+  '/admin/products': 'admin.pages.products',
+  '/admin/categories': 'admin.pages.categories',
+  '/admin/stock': 'admin.pages.stock',
+  '/admin/orders': 'admin.pages.orders',
+  '/admin/users': 'admin.pages.users',
+  '/admin/security': 'admin.pages.security',
+  '/admin': 'admin.pages.dashboard'
 };
 
 const COLLAPSE_KEY = 'novatech.admin.sidebar-collapsed';
@@ -49,6 +51,7 @@ const readCollapsed = () => {
  */
 const AdminPage = () => {
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -74,7 +77,7 @@ const AdminPage = () => {
     Object.keys(PAGE_TITLES)
       .sort((left, right) => right.length - left.length)
       .find((path) => location.pathname.startsWith(path)) ?? '/admin';
-  const title = PAGE_TITLES[matchedPath];
+  const title = t(PAGE_TITLES[matchedPath]);
 
   const handleLogout = () => {
     logout();
@@ -86,38 +89,38 @@ const AdminPage = () => {
       <aside className={`admin-sidebar${sidebarOpen ? ' admin-sidebar--open' : ''}`}>
         <div className="admin-sidebar__brand">
           <Logo compact={collapsed} />
-          <span className="admin-sidebar__tag">Admin</span>
+          <span className="admin-sidebar__tag">{t('admin.tag')}</span>
         </div>
 
-        <nav className="admin-sidebar__nav" aria-label="Navigation administration">
+        <nav className="admin-sidebar__nav" aria-label={t('admin.eyebrow')}>
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
-              title={item.label}
-              aria-label={item.label}
+              title={t(item.labelKey)}
+              aria-label={t(item.labelKey)}
               className={({ isActive }) => `admin-nav-link${isActive ? ' admin-nav-link--active' : ''}`}
             >
               <AdminIcon name={item.icon} />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </NavLink>
           ))}
         </nav>
 
         <div className="admin-sidebar__foot">
-          <Link to="/" className="admin-nav-link" title="Voir la boutique" aria-label="Voir la boutique">
+          <Link to="/" className="admin-nav-link" title={t('admin.store')} aria-label={t('admin.store')}>
             <AdminIcon name="store" />
-            <span>Voir la boutique</span>
+            <span>{t('admin.store')}</span>
           </Link>
-          <button type="button" className="admin-nav-link" title="Déconnexion" aria-label="Déconnexion" onClick={handleLogout}>
+          <button type="button" className="admin-nav-link" title={t('admin.logout')} aria-label={t('admin.logout')} onClick={handleLogout}>
             <AdminIcon name="logout" />
-            <span>Déconnexion</span>
+            <span>{t('admin.logout')}</span>
           </button>
         </div>
       </aside>
 
-      {sidebarOpen && <button type="button" className="admin-overlay" aria-label="Fermer le menu" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && <button type="button" className="admin-overlay" aria-label={t('common.close')} onClick={() => setSidebarOpen(false)} />}
 
       <div className="admin-main">
         <header className="admin-topbar">
@@ -135,19 +138,20 @@ const AdminPage = () => {
           <button
             type="button"
             className="admin-topbar__burger"
-            aria-label={sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            title={sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-label={sidebarOpen ? t('common.close') : t('admin.eyebrow')}
+            title={sidebarOpen ? t('common.close') : t('admin.eyebrow')}
             onClick={() => setSidebarOpen((open) => !open)}
           >
             <AdminIcon name={sidebarOpen ? 'close' : 'menu'} size={20} />
           </button>
 
           <div className="admin-topbar__title">
-            <span className="admin-topbar__eyebrow">Administration</span>
+            <span className="admin-topbar__eyebrow">{t('admin.eyebrow')}</span>
             <h1>{title}</h1>
           </div>
 
           <div className="admin-topbar__user">
+            <LocaleSwitcher />
             <span className="admin-avatar" aria-hidden="true">{user?.name?.slice(0, 1).toUpperCase()}</span>
             <span className="admin-topbar__identity">
               <strong>{user?.name}</strong>

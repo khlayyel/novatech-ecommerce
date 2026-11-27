@@ -8,10 +8,10 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 
 ## 1. Catalogue (≈ 1 min)
 
-1. Arriver sur l'accueil : présenter le héro puis le catalogue (24 produits, 6 catégories).
-2. **Filtres** : cliquer sur « Écrans » → la grille se filtre ; revenir sur « Tous ».
-3. **Recherche** : taper « nova » (anti-rebond) → résultats instantanés.
-4. **Tri** : « Prix croissant » → la grille se réorganise.
+1. Arriver sur l'accueil : présenter le héro puis le catalogue (24 produits, 3 catégories de niveau 1).
+2. **Langue** : basculer FR → EN → AR dans la navbar (l'arabe passe en RTL), puis revenir en FR.
+3. **Filtres en cascade** : choisir une Catégorie, puis une Famille (le select se débloque), puis une Sous-famille ; revenir à « Toutes les catégories ».
+4. **Recherche** : taper « nova » (anti-rebond) → résultats instantanés. **Tri** : « Prix croissant ».
 5. Souligner les états : badge de stock (« En stock », « Plus que 3 », « Épuisé » sur le PC gamer si déjà acheté en répétition), squelettes de chargement au refresh.
 
 ## 2. Panier invité — CRUD complet (≈ 1,5 min)

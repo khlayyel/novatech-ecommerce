@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner';
 import * as productsApi from '../api/products';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { useI18n } from '../i18n';
 import { getErrorMessage } from '../utils/request';
 import { formatPrice } from '../utils/format';
 import type { Product } from '../types';
@@ -19,6 +20,7 @@ const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { addToCart } = useCart();
   const { showToast } = useToast();
+  const { t } = useI18n();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
@@ -65,9 +67,9 @@ const ProductDetailPage = () => {
     setAdding(true);
     try {
       await addToCart(product._id, quantity);
-      showToast(`${quantity} × ${product.name} ajouté${quantity > 1 ? 's' : ''} au panier.`, 'success');
+      showToast(t('product.added', { count: quantity, name: product.name }), 'success');
     } catch (err) {
-      showToast(getErrorMessage(err, 'Impossible d\'ajouter au panier.'), 'error');
+      showToast(getErrorMessage(err, t('product.notAdded')), 'error');
     } finally {
       setAdding(false);
     }
@@ -77,9 +79,9 @@ const ProductDetailPage = () => {
     setAddingRelatedId(item._id);
     try {
       await addToCart(item._id);
-      showToast(`${item.name} ajouté au panier.`, 'success');
+      showToast(t('product.added', { count: 1, name: item.name }), 'success');
     } catch (err) {
-      showToast(getErrorMessage(err, 'Impossible d\'ajouter au panier.'), 'error');
+      showToast(getErrorMessage(err, t('product.notAdded')), 'error');
     } finally {
       setAddingRelatedId(null);
     }
@@ -97,8 +99,8 @@ const ProductDetailPage = () => {
     return (
       <div className="container">
         <EmptyState
-          title="Produit indisponible"
-          message={error || 'Ce produit n\'existe pas ou a été retiré du catalogue.'}
+          title={t('product.notFoundTitle')}
+          message={error || t('product.notFoundMessage')}
           icon="🔎"
           action={
             <Link to="/" className="button button--primary">
@@ -134,7 +136,11 @@ const ProductDetailPage = () => {
 
           <p className="product-detail__price">{formatPrice(product.price)}</p>
           <p className={`stock-hint ${soldOut ? 'stock-hint--out' : lowStock ? 'stock-hint--low' : ''}`}>
-            {soldOut ? 'Produit épuisé' : lowStock ? `Plus que ${product.stock} en stock` : `${product.stock} en stock`}
+            {soldOut
+              ? t('product.soldOut')
+              : lowStock
+                ? t('product.lowStock', { count: product.stock })
+                : t('product.inStockCount', { count: product.stock })}
           </p>
 
           <p className="product-detail__description">{product.description}</p>
@@ -152,14 +158,14 @@ const ProductDetailPage = () => {
               onClick={handleAdd}
               disabled={soldOut || adding}
             >
-              {soldOut ? 'Indisponible' : adding ? 'Ajout…' : 'Ajouter au panier'}
+              {soldOut ? t('product.unavailable') : adding ? t('product.adding') : t('product.add')}
             </button>
           </div>
 
           <ul className="product-detail__perks">
-            <li>🔒 Paiement sécurisé par Stripe</li>
-            <li>🚚 Suivi de commande en temps réel</li>
-            <li>↩️ Retour sous 30 jours</li>
+            <li>{t('product.perksStripe')}</li>
+            <li>{t('product.perksTracking')}</li>
+            <li>{t('product.perksReturns')}</li>
           </ul>
 
           <dl className="order-meta">

@@ -1,38 +1,41 @@
 import Logo from './Logo';
+import { useI18n } from '../i18n';
 
 /** Pied de page : identité, liens, mentions académiques. */
-const Footer = () => (
-  <footer className="footer">
-    <div className="container footer__grid">
-      <div>
-        <Logo />
-        <p className="footer__tagline">
-          Le matériel informatique, en toute confiance. Paiement sécurisé par Stripe, commandes suivies en temps réel.
-        </p>
+const Footer = () => {
+  const { t } = useI18n();
+
+  return (
+    <footer className="footer">
+      <div className="container footer__grid">
+        <div>
+          <Logo />
+          <p className="footer__tagline">{t('footer.tagline')}</p>
+        </div>
+        <div>
+          <h3 className="footer__title">{t('footer.shop')}</h3>
+          <ul className="footer__list">
+            <li><a href="/#catalogue">{t('nav.catalog')}</a></li>
+            <li><a href="/cart">{t('footer.cart')}</a></li>
+            <li><a href="/orders">{t('footer.tracking')}</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="footer__title">{t('footer.project')}</h3>
+          <ul className="footer__list">
+            <li>{t('footer.tech')}</li>
+            <li>{t('footer.api')}</li>
+            <li>{t('footer.stripe')}</li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <h3 className="footer__title">Boutique</h3>
-        <ul className="footer__list">
-          <li><a href="/#catalogue">Catalogue</a></li>
-          <li><a href="/cart">Mon panier</a></li>
-          <li><a href="/orders">Suivi de commande</a></li>
-        </ul>
+      <div className="footer__bottom">
+        <div className="container">
+          <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
+        </div>
       </div>
-      <div>
-        <h3 className="footer__title">Projet</h3>
-        <ul className="footer__list">
-          <li>React + TypeScript + Vite</li>
-          <li>Node.js + Express + MongoDB</li>
-          <li>Stripe — paiements en mode test</li>
-        </ul>
-      </div>
-    </div>
-    <div className="footer__bottom">
-      <div className="container">
-        <p>© {new Date().getFullYear()} NovaTech — Projet académique (workshop e-commerce fullstack). Aucune vente réelle.</p>
-      </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 export default Footer;

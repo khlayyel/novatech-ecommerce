@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../i18n';
 
 const DEMO_CREDENTIALS = { email: 'demo@novatech.fr', password: 'Demo1234!' };
 
 /** Connexion (bonus JWT) — redirige vers la page demandée après authentification. */
 const LoginPage = () => {
   const { login } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from || '/';
@@ -41,12 +43,12 @@ const LoginPage = () => {
   return (
     <div className="container auth-layout">
       <section className="card auth-card">
-        <h1 className="auth-card__title">Connexion</h1>
-        <p className="muted">Retrouvez vos commandes et gardez votre panier d'un appareil à l'autre.</p>
+        <h1 className="auth-card__title">{t('auth.loginTitle')}</h1>
+        <p className="muted">{t('auth.loginSubtitle')}</p>
 
         <form className="form" onSubmit={handleSubmit} noValidate>
           <label className="field">
-            <span className="field__label">Email</span>
+            <span className="field__label">{t('auth.email')}</span>
             <input
               type="email"
               className="input"
@@ -58,7 +60,7 @@ const LoginPage = () => {
           </label>
 
           <label className="field">
-            <span className="field__label">Mot de passe</span>
+            <span className="field__label">{t('auth.password')}</span>
             <input
               type="password"
               className="input"
@@ -76,7 +78,7 @@ const LoginPage = () => {
           )}
 
           <button type="submit" className="button button--primary button--full button--lg" disabled={submitting}>
-            {submitting ? 'Connexion…' : 'Se connecter'}
+            {submitting ? t('auth.submitting') : t('auth.submit')}
           </button>
         </form>
 
@@ -88,11 +90,11 @@ const LoginPage = () => {
             setPassword(DEMO_CREDENTIALS.password);
           }}
         >
-          Remplir avec le compte de démonstration
+          {t('auth.demoFill')}
         </button>
 
         <p className="auth-card__switch">
-          Pas encore de compte ? <Link to="/register">Créer un compte</Link>
+          {t('auth.noAccount')} <Link to="/register">{t('auth.createAccount')}</Link>
         </p>
       </section>
     </div>

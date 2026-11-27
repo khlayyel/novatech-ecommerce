@@ -36,6 +36,7 @@ Une boutique complète : catalogue filtrable, panier invité **ou** connecté (J
 | Tests | Jest 30, Supertest, React Testing Library, jest-dom, mongodb-memory-server |
 | Qualité | ESLint 10 (flat config), TypeScript `--noEmit`, GitHub Actions |
 | Conteneurisation | Docker multi-stage (API + web/nginx), docker-compose (mongo + api + web) |
+| Internationalisation | FR / EN / AR — fichiers de ressources JSON, résolution par clé, RTL automatique pour l'arabe |
 | Déploiement | Render (backend), Vercel (frontend), GitHub Actions (CI/CD) |
 
 ---
@@ -65,6 +66,7 @@ novatech-ecommerce/
 │   │   ├── components/admin/   # AdminIcon, BarChart (graphiques sans dépendance)
 │   │   ├── components/ui/      # Panel repliable, DataTable (tri + pagination)
 │   │   ├── context/            # AuthContext (JWT), CartContext, ToastContext
+│   │   ├── i18n/               # ressources fr/en/ar + provider + hook useI18n
 │   │   ├── pages/              # Accueil, fiche produit, panier, paiement, suivi, auth
 │   │   ├── pages/admin/        # tableau de bord, produits, catégories, stocks, commandes, clients, sécurité
 │   │   ├── types/              # types partagés
@@ -358,6 +360,36 @@ Render et Vercel sont reliés au dépôt GitHub : chaque push sur `main` redépl
 5. **Vérification de bout en bout** : commandez avec la carte `4242 4242 4242 4242` → confirmation → le statut passe à *Payée* et le stock baisse.
 
 > 💡 En local, le webhook peut être simulé sans le dashboard : `stripe listen --forward-to localhost:5000/api/orders/webhook` (Stripe CLI), puis `stripe trigger payment_intent.succeeded`. L'endpoint `/confirm` couvre déjà le cas où le webhook n'est pas configuré.
+
+---
+
+## 🌍 Internationalisation (FR / EN / AR)
+
+Les chaînes de l'interface sont externalisées dans des fichiers de ressources :
+
+```
+frontend/src/i18n/
+├── locales/fr.json   # français (langue par défaut)
+├── locales/en.json   # anglais
+├── locales/ar.json   # arabe
+├── core.ts           # résolution des clés, interpolation, contexte, useI18n
+└── I18nProvider.tsx  # provider React (langue, dir=rtl, persistance)
+```
+
+Utilisation dans les composants :
+
+```tsx
+const { t } = useI18n();
+t('admin.nav.products');                          // « Produits »
+t('table.range', { from, to, total });            // interpolation
+```
+
+- Langue par défaut : **français** ; sélecteur dans la barre de navigation boutique et dans la topbar admin.
+- Choix **mémorisé** dans le navigateur ; `<html lang>` et `dir="rtl"` appliqués automatiquement pour l'arabe.
+- Repli automatique sur le français si une clé manque dans la langue courante.
+- **Ajouter une langue** : copier un fichier JSON, traduire les valeurs, puis l'enregistrer dans `LOCALES` et `RESOURCES` (`core.ts`).
+
+Périmètre actuel : navigation, pied de page, accueil/catalogue, fiches produit, connexion, coquille d'administration (menu, titres, sortie) et tableau standard (pagination, tri, détail). Les libellés métier propres aux écrans d'administration, au panier et au tunnel de paiement restent en français et s'extraient de la même façon, clé par clé.
 
 ---
 

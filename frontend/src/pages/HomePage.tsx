@@ -5,6 +5,7 @@ import * as productsApi from '../api/products';
 import { getErrorMessage } from '../utils/request';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { useI18n } from '../i18n';
 import type { CategoryInfo, Product } from '../types';
 
 /**
@@ -31,6 +32,7 @@ const HomePage = () => {
 
   const { addToCart } = useCart();
   const { showToast } = useToast();
+  const { t } = useI18n();
 
   // Recherche avec anti-rebond (300 ms).
   useEffect(() => {
@@ -134,42 +136,39 @@ const HomePage = () => {
     <>
       <section className="hero">
         <div className="container hero__inner">
-          <span className="hero__badge">Workshop fullstack · React · Node.js · MongoDB · Stripe</span>
+          <span className="hero__badge">{t('home.badge')}</span>
           <h1 className="hero__title">
-            Le matériel informatique, <span className="gradient-text">en toute confiance.</span>
+            {t('home.titleStart')} <span className="gradient-text">{t('home.titleHighlight')}</span>
           </h1>
-          <p className="hero__subtitle">
-            Ordinateurs, écrans, périphériques et composants sélectionnés avec soin.
-            Ajoutez au panier, payez de façon sécurisée avec Stripe et suivez votre commande en temps réel.
-          </p>
+          <p className="hero__subtitle">{t('home.subtitle')}</p>
           <div className="hero__cta">
             <a href="#catalogue" className="button button--primary button--lg">
-              Découvrir le catalogue
+              {t('home.discover')}
             </a>
             <Link to="/cart" className="button button--outline button--lg">
-              Voir mon panier
+              {t('home.viewCart')}
             </Link>
           </div>
           <ul className="hero__trust">
-            <li>🔒 Paiement sécurisé Stripe</li>
-            <li>📦 Suivi de commande en direct</li>
-            <li>👤 Sans compte ou avec compte</li>
+            <li>{t('home.trustStripe')}</li>
+            <li>{t('home.trustTracking')}</li>
+            <li>{t('home.trustGuest')}</li>
           </ul>
         </div>
       </section>
 
       <section id="catalogue" className="catalog container">
         <header className="section-head">
-          <h2 className="section-head__title">Notre catalogue</h2>
+          <h2 className="section-head__title">{t('home.catalogTitle')}</h2>
           <p className="section-head__subtitle">
-            {total} référence{total > 1 ? 's' : ''} disponible{total > 1 ? 's' : ''} — filtrez par catégorie, famille puis sous-famille.
+            {t('home.catalogSubtitle', { count: total })}
           </p>
         </header>
 
         <div className="catalog__toolbar">
           <div className="catalog__cascade">
             <label className="field">
-              <span>Catégorie</span>
+              <span>{t('home.category')}</span>
               <select
                 className="input input--select"
                 value={group}
@@ -179,7 +178,7 @@ const HomePage = () => {
                   setSubcategory('');
                 }}
               >
-                <option value="">Toutes les catégories</option>
+                <option value="">{t('home.allCategories')}</option>
                 {groups.map((name) => (
                   <option key={name} value={name}>{name}</option>
                 ))}
@@ -187,7 +186,7 @@ const HomePage = () => {
             </label>
 
             <label className="field">
-              <span>Famille</span>
+              <span>{t('home.family')}</span>
               <select
                 className="input input--select"
                 value={category}
@@ -197,7 +196,7 @@ const HomePage = () => {
                   setSubcategory('');
                 }}
               >
-                <option value="">Toutes les familles</option>
+                <option value="">{t('home.allFamilies')}</option>
                 {families.map((family) => (
                   <option key={family._id} value={family.name}>{family.name}</option>
                 ))}
@@ -205,14 +204,14 @@ const HomePage = () => {
             </label>
 
             <label className="field">
-              <span>Sous-famille</span>
+              <span>{t('home.subfamily')}</span>
               <select
                 className="input input--select"
                 value={subcategory}
                 disabled={!category || subcategories.length === 0}
                 onChange={(event) => setSubcategory(event.target.value)}
               >
-                <option value="">Toutes les sous-familles</option>
+                <option value="">{t('home.allSubfamilies')}</option>
                 {subcategories.map((name) => (
                   <option key={name} value={name}>{name}</option>
                 ))}
@@ -224,20 +223,20 @@ const HomePage = () => {
             <input
               type="search"
               className="input"
-              placeholder="Rechercher un produit…"
-              aria-label="Rechercher un produit"
+              placeholder={t('home.search')}
+              aria-label={t('home.search')}
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
             />
             <select
               className="input input--select"
-              aria-label="Trier les produits"
+              aria-label={t('home.sort')}
               value={sort}
               onChange={(event) => setSort(event.target.value)}
             >
-              <option value="recent">Nouveautés</option>
-              <option value="price-asc">Prix croissant</option>
-              <option value="price-desc">Prix décroissant</option>
+              <option value="recent">{t('home.sortRecent')}</option>
+              <option value="price-asc">{t('home.sortPriceAsc')}</option>
+              <option value="price-desc">{t('home.sortPriceDesc')}</option>
             </select>
           </div>
         </div>
@@ -254,7 +253,7 @@ const HomePage = () => {
         {page < pages && (
           <div className="catalog__more">
             <button type="button" className="button button--outline" onClick={loadMore} disabled={loadingMore}>
-              {loadingMore ? 'Chargement…' : `Afficher plus (${products.length}/${total})`}
+              {loadingMore ? t('home.loadingMore') : t('home.loadMore', { shown: products.length, total })}
             </button>
           </div>
         )}

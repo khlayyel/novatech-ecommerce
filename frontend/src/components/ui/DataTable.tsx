@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useI18n } from '../../i18n';
 
 export interface Column<T> {
   key: string;
@@ -46,9 +47,10 @@ function DataTable<T>({
   rowKey,
   defaultPageSize = 10,
   pageSizeKey,
-  emptyLabel = 'Aucune donnée à afficher.',
+  emptyLabel,
   renderDetail
 }: DataTableProps<T>) {
+  const { t } = useI18n();
   const storageKey = pageSizeKey ? `novatech.table.${pageSizeKey}.size` : null;
 
   const [pageSize, setPageSize] = useState(() => readPageSize(storageKey, defaultPageSize));
@@ -148,7 +150,7 @@ function DataTable<T>({
                   </th>
                 );
               })}
-              {renderDetail && <th className="is-right">Détails</th>}
+              {renderDetail && <th className="is-right">{t('table.details')}</th>}
             </tr>
           </thead>
 
@@ -172,7 +174,7 @@ function DataTable<T>({
                           aria-expanded={isExpanded}
                           onClick={() => setExpanded(isExpanded ? null : key)}
                         >
-                          {isExpanded ? 'Masquer' : 'Voir'}
+                          {isExpanded ? t('table.hide') : t('table.show')}
                         </button>
                       </td>
                     )}
@@ -191,15 +193,15 @@ function DataTable<T>({
       </div>
 
       {visible.length === 0 ? (
-        <p className="muted data-table__empty">{emptyLabel}</p>
+        <p className="muted data-table__empty">{emptyLabel ?? t('table.empty')}</p>
       ) : (
         <div className="data-table__foot">
           <span className="muted small">
-            {from}–{to} sur {sorted.length} ligne{sorted.length > 1 ? 's' : ''}
+            {t('table.range', { from, to, total: sorted.length })}
           </span>
 
           <label className="data-table__size">
-            <span className="muted small">Lignes par page</span>
+            <span className="muted small">{t('table.rowsPerPage')}</span>
             <select
               className="input input--select input--compact"
               value={pageSize}
@@ -217,7 +219,7 @@ function DataTable<T>({
               className="pagination__btn"
               onClick={() => setPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              aria-label="Page précédente"
+              aria-label={t('table.previous')}
             >
               ‹
             </button>
@@ -255,7 +257,7 @@ function DataTable<T>({
               className="pagination__btn"
               onClick={() => setPage(Math.min(pages, currentPage + 1))}
               disabled={currentPage === pages}
-              aria-label="Page suivante"
+              aria-label={t('table.next')}
             >
               ›
             </button>

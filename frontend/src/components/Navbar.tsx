@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
+import LocaleSwitcher from './ui/LocaleSwitcher';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useI18n } from '../i18n';
 
-/** Barre de navigation : liens, badge panier, session utilisateur, menu mobile. */
+/** Barre de navigation : liens, sélecteur de langue, badge panier, session, menu mobile. */
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -22,16 +25,16 @@ const Navbar = () => {
   const navLinks = (
     <>
       <NavLink to="/" end onClick={closeMenu} className={({ isActive }) => `nav-link${isActive ? ' nav-link--active' : ''}`}>
-        Catalogue
+        {t('nav.catalog')}
       </NavLink>
       {user && (
         <NavLink to="/orders" onClick={closeMenu} className={({ isActive }) => `nav-link${isActive ? ' nav-link--active' : ''}`}>
-          Mes commandes
+          {t('nav.orders')}
         </NavLink>
       )}
       {user?.role === 'admin' && (
         <NavLink to="/admin" onClick={closeMenu} className={({ isActive }) => `nav-link nav-link--admin${isActive ? ' nav-link--active' : ''}`}>
-          Administration
+          {t('nav.admin')}
         </NavLink>
       )}
     </>
@@ -47,7 +50,9 @@ const Navbar = () => {
         </nav>
 
         <div className="navbar__actions">
-          <Link to="/cart" className="cart-button" aria-label={`Panier (${totalItems} article${totalItems > 1 ? 's' : ''})`}>
+          <LocaleSwitcher />
+
+          <Link to="/cart" className="cart-button" aria-label={t('nav.cartLabel', { count: totalItems })}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
               <path d="M3 4h2l2.4 12.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.2L20.5 8H6" strokeLinecap="round" strokeLinejoin="round" />
               <circle cx="10" cy="20.5" r="1.4" fill="currentColor" stroke="none" />
@@ -63,16 +68,16 @@ const Navbar = () => {
                 {user.role === 'admin' && <em className="navbar__role">admin</em>}
               </span>
               <button type="button" className="button button--ghost button--sm" onClick={handleLogout}>
-                Déconnexion
+                {t('nav.logout')}
               </button>
             </div>
           ) : (
             <div className="navbar__user">
               <Link to="/login" className="button button--ghost button--sm" onClick={closeMenu}>
-                Connexion
+                {t('nav.login')}
               </Link>
               <Link to="/register" className="button button--primary button--sm" onClick={closeMenu}>
-                Créer un compte
+                {t('nav.register')}
               </Link>
             </div>
           )}
@@ -96,7 +101,7 @@ const Navbar = () => {
           {navLinks}
           {!user && (
             <Link to="/login" className="nav-link" onClick={closeMenu}>
-              Connexion
+              {t('nav.login')}
             </Link>
           )}
         </nav>

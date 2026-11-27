@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../utils/format';
+import { useI18n } from '../i18n';
 import type { Product } from '../types';
 
 interface ProductCardProps {
@@ -10,6 +11,7 @@ interface ProductCardProps {
 
 /** Carte produit du catalogue : visuel, prix, stock et ajout au panier. */
 const ProductCard = ({ product, onAdd, adding = false }: ProductCardProps) => {
+  const { t } = useI18n();
   const soldOut = product.stock <= 0;
   const lowStock = !soldOut && product.stock <= 5;
 
@@ -20,7 +22,7 @@ const ProductCard = ({ product, onAdd, adding = false }: ProductCardProps) => {
           <img src={product.imageUrl} alt={product.name} loading="lazy" />
         </Link>
         <span className="product-card__category">{product.category}</span>
-        {soldOut && <span className="product-card__ribbon">Épuisé</span>}
+        {soldOut && <span className="product-card__ribbon">{t('product.soldOut')}</span>}
       </div>
 
       <div className="product-card__body">
@@ -32,7 +34,11 @@ const ProductCard = ({ product, onAdd, adding = false }: ProductCardProps) => {
         <div className="product-card__meta">
           <span className="product-card__price">{formatPrice(product.price)}</span>
           <span className={`stock-hint ${soldOut ? 'stock-hint--out' : lowStock ? 'stock-hint--low' : ''}`}>
-            {soldOut ? 'Épuisé' : lowStock ? `Plus que ${product.stock} en stock` : 'En stock'}
+            {soldOut
+              ? t('product.soldOut')
+              : lowStock
+                ? t('product.lowStock', { count: product.stock })
+                : t('product.inStock')}
           </span>
         </div>
 
@@ -42,7 +48,7 @@ const ProductCard = ({ product, onAdd, adding = false }: ProductCardProps) => {
           onClick={() => onAdd(product)}
           disabled={soldOut || adding}
         >
-          {soldOut ? 'Indisponible' : adding ? 'Ajout…' : 'Ajouter au panier'}
+          {soldOut ? t('product.unavailable') : adding ? t('product.adding') : t('product.add')}
         </button>
       </div>
     </article>
