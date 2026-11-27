@@ -3,6 +3,7 @@
 const TOKEN_KEY = 'novatech_token';
 const CART_ID_KEY = 'novatech_cart_id';
 const ORDER_TOKENS_KEY = 'novatech_order_tokens';
+const ASSISTANT_GUEST_KEY = 'novatech.assistant.guestId';
 
 const safeLocalStorage = {
   get(key: string): string | null {
@@ -60,6 +61,19 @@ const readOrderTokens = (): Record<string, string> => {
 };
 
 export const getOrderToken = (orderId: string): string | undefined => readOrderTokens()[orderId];
+
+/** Identifiant anonyme pour rattacher les conversations d'assistant d'un visiteur. */
+export const getAssistantGuestId = (): string => {
+  let guestId = safeLocalStorage.get(ASSISTANT_GUEST_KEY);
+  if (!guestId) {
+    guestId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `assistant-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+    safeLocalStorage.set(ASSISTANT_GUEST_KEY, guestId);
+  }
+  return guestId;
+};
 
 export const setOrderToken = (orderId: string, token: string) => {
   const tokens = readOrderTokens();

@@ -6,7 +6,7 @@ import { ApiError } from '../middleware/error.js';
 import { generateContent } from './gemini.service.js';
 
 const PAID_STATUSES = ['paid', 'shipped', 'delivered'];
-const MAX_ROUNDS = 3;
+const MAX_ROUNDS = 5;
 const MAX_HISTORY = 10;
 const MAX_TEXT = 2000;
 
@@ -377,6 +377,255 @@ async function getInventoryValue() {
   });
 }
 
+const parseIsoDate = (value) => {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const rangeFromArgs = (args = {}, fallbackDays = 30) => {
+  const fromParam = parseIsoDate(args.from);
+  const toParam = parseIsoDate(args.to);
+
+  if (!fromParam || !toParam || toParam < fromParam) {
+    const to = new Date();
+    to.setUTCHours(23, 59, 59, 999);
+    const from = new Date();
+    from.setUTCHours(0, 0, 0, 0);
+    from.setUTCDate(from.getUTCDate() - (fallbackDays - 1));
+    return { from, to };
+  }
+
+  const to = new Date(toParam);
+  to.setUTCHours(23, 59, 59, 999);
+  return { from: fromParam, to };
+};
+
+const fullProduct = (product) => ({
+  id: String(product._id),
+  name: product.name,
+  description: product.description,
+  price: product.price,
+  category: product.category,
+  subcategory: product.subcategory || '',
+  stock: product.stock,
+  images: product.imageUrls?.length ? product.imageUrls : [product.imageUrl].filter(Boolean)
+});
+
+async function getMostExpensiveProduct() {
+  const product = await Product.findOne({ price: { $gt: 0 } }).sort({ price: -1 }).lean();
+  return product ? { found: true, product: fullProduct(product) } : { found: false };
+}
+
+async function getCheapestProduct() {
+  const product = await Product.findOne({ price: { $gt: 0 } }).sort({ price: 1 }).lean();
+  return product ? { found: true, product: fullProduct(product) } : { found: false };
+}
+
+async function getTopExpensiveProducts(args = {}) {
+  const limit = clampInt(args.limit, 5, 1, 20);
+  const products = await Product.find({ price: { $gt: 0 } })
+    .sort({ price: -1 })
+    .limit(limit)
+    .select('name price category subcategory stock description')
+    .lean();
+  return { count: products.length, products: products.map(fullProduct) };
+}
+
+async function getOutOfStockProducts(args = {}) {
+  const limit = clampInt(args.limit, 10, 1, 30);
+  const products = await Product.find({ stock: { $lte: 0 } })
+    .sort({ name: 1 })
+    .limit(limit)
+    .select('name price category stock')
+    .lean();
+  return {
+    count: products.length,
+    products: products.map((product) => ({
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      stock: product.stock
+    }))
+  };
+}
+
+async function getProductStatistics() {
+  const [rows, categories] = await Promise.all([
+    Product.aggregate([
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          averagePrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+          units: { $sum: '$stock' },
+          value: { $sum: { $multiply: ['$price', '$stock'] } }
+        }
+      }
+    ]),
+    Product.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ])
+  ]);
+
+  const row = rows[0] || {};
+  return {
+    count: row.count || 0,
+    averagePrice: round2(row.averagePrice),
+    minPrice: row.minPrice ?? null,
+    maxPrice: row.maxPrice ?? null,
+    units: row.units || 0,
+    inventoryValue: round2(row.value),
+    categories: categories.map((item) => ({ category: item._id, count: item.count }))
+  };
+}
+
+async function revenueBetween(from, to) {
+  const rows = await Order.aggregate([
+    { $match: { status: { $in: PAID_STATUSES }, createdAt: { $gte: from, $lte: to } } },
+    {
+      $group: {
+        _id: null,
+        revenue: { $sum: '$totalAmount' },
+        orders: { $sum: 1 },
+        averageBasket: { $avg: '$totalAmount' }
+      }
+    }
+  ]);
+
+  const row = rows[0] || {};
+  return {
+    revenue: round2(row.revenue),
+    orders: row.orders || 0,
+    averageBasket: round2(row.averageBasket)
+  };
+}
+
+async function getRevenueRange(args = {}) {
+  const { from, to } = rangeFromArgs(args, 30);
+  const totals = await revenueBetween(from, to);
+  return {
+    from: from.toISOString().slice(0, 10),
+    to: to.toISOString().slice(0, 10),
+    ...totals
+  };
+}
+
+async function comparePeriods(args = {}) {
+  const now = new Date();
+  const thisMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const thisMonthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+  const prevMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  const prevMonthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 23, 59, 59, 999));
+
+  const rangeA = rangeFromArgs({ from: args.from1, to: args.to1 }, 30);
+  const rangeB = rangeFromArgs({ from: args.from2, to: args.to2 }, 30);
+
+  const periodA = args.from1 && args.to1 ? rangeA : { from: thisMonthStart, to: thisMonthEnd };
+  const periodB = args.from2 && args.to2 ? rangeB : { from: prevMonthStart, to: prevMonthEnd };
+
+  const [current, previous] = await Promise.all([
+    revenueBetween(periodA.from, periodA.to),
+    revenueBetween(periodB.from, periodB.to)
+  ]);
+
+  const difference = round2(current.revenue - previous.revenue);
+  const percent =
+    previous.revenue > 0 ? Math.round((difference / previous.revenue) * 10000) / 100 : null;
+
+  return {
+    periodA: { from: periodA.from.toISOString().slice(0, 10), to: periodA.to.toISOString().slice(0, 10), ...current },
+    periodB: { from: periodB.from.toISOString().slice(0, 10), to: periodB.to.toISOString().slice(0, 10), ...previous },
+    difference,
+    percent
+  };
+}
+
+async function getSalesByDay(args = {}) {
+  const days = clampInt(args.days, 14, 1, 365);
+  const since = sinceDate(days);
+  const until = new Date();
+  until.setUTCHours(23, 59, 59, 999);
+
+  const rows = await Order.aggregate([
+    { $match: { status: { $in: PAID_STATUSES }, createdAt: { $gte: since, $lte: until } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'UTC' } },
+        revenue: { $sum: '$totalAmount' },
+        orders: { $sum: 1 }
+      }
+    },
+    { $sort: { _id: 1 } }
+  ]);
+
+  return {
+    days,
+    daysData: rows.map((row) => ({ date: row._id, revenue: round2(row.revenue), orders: row.orders }))
+  };
+}
+
+async function getTopCustomers(args = {}) {
+  const days = clampInt(args.days, 30, 1, 365);
+  const limit = clampInt(args.limit, 5, 1, 20);
+  const since = sinceDate(days);
+
+  const rows = await Order.aggregate([
+    { $match: { status: { $in: PAID_STATUSES }, user: { $ne: null }, createdAt: { $gte: since } } },
+    { $group: { _id: '$user', spent: { $sum: '$totalAmount' }, orders: { $sum: 1 } } },
+    { $sort: { spent: -1 } },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'userDoc'
+      }
+    },
+    { $unwind: { path: '$userDoc', preserveNullAndEmptyArrays: true } }
+  ]);
+
+  return {
+    days,
+    customers: rows.map((row) => ({
+      name: row.userDoc?.name || 'Client',
+      email: row.userDoc?.email || '',
+      spent: round2(row.spent),
+      orders: row.orders
+    }))
+  };
+}
+
+async function getProductsWithoutSales(args = {}) {
+  const limit = clampInt(args.limit, 10, 1, 30);
+  const sold = await Order.aggregate([
+    { $match: { status: { $in: PAID_STATUSES } } },
+    { $unwind: '$items' },
+    { $group: { _id: '$items.product' } }
+  ]);
+
+  const soldIds = sold.map((row) => row._id).filter(Boolean);
+  const products = await Product.find({ _id: { $nin: soldIds } })
+    .sort({ price: -1 })
+    .limit(limit)
+    .select('name price category stock')
+    .lean();
+
+  return {
+    count: products.length,
+    products: products.map((product) => ({
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      stock: product.stock
+    }))
+  };
+}
+
 // ── Déclarations d'outils pour Gemini ──────────────────────────────
 const declare = (name, description, properties = {}, required = []) => ({
   name,
@@ -407,6 +656,15 @@ const CUSTOMER_DECLARATIONS = [
   declare('get_product', 'Détail d’un produit par nom ou identifiant.', {
     nameOrId: STRING('Nom du produit ou identifiant')
   }),
+  declare('get_most_expensive_product', 'Produit le plus cher du catalogue, avec tous ses détails.'),
+  declare('get_cheapest_product', 'Produit le moins cher du catalogue.'),
+  declare('get_top_expensive_products', 'Classement des produits les plus chers.', {
+    limit: INTEGER('Nombre de produits (1 à 20)')
+  }),
+  declare('get_out_of_stock_products', 'Produits actuellement épuisés.', {
+    limit: INTEGER('Nombre de produits (1 à 30)')
+  }),
+  declare('get_product_statistics', 'Statistiques produits : nombre, prix moyen/min/max, unités, valeur du stock, répartition par famille.'),
   declare(
     'get_order_status',
     'Statut d’une commande du client connecté ou d’un invité muni du jeton de suivi.',
@@ -449,7 +707,27 @@ const ADMIN_DECLARATIONS = [
     status: STRING('Filtrer par statut : pending, paid, shipped, delivered, failed')
   }),
   declare('get_customer_stats', 'Nombre total de clients, administrateurs et inscriptions récentes.'),
-  declare('get_inventory_value', 'Nombre de références, unités en stock et valeur de l’inventaire.')
+  declare('get_inventory_value', 'Nombre de références, unités en stock et valeur de l’inventaire.'),
+  declare('get_revenue_range', 'Chiffre d’affaires, commandes et panier moyen entre deux dates (from/to au format YYYY-MM-DD).', {
+    from: STRING('Date de début YYYY-MM-DD'),
+    to: STRING('Date de fin YYYY-MM-DD')
+  }),
+  declare('compare_periods', 'Compare deux périodes de chiffre d’affaires (mois en cours vs mois précédent par défaut).', {
+    from1: STRING('Début période 1 YYYY-MM-DD'),
+    to1: STRING('Fin période 1 YYYY-MM-DD'),
+    from2: STRING('Début période 2 YYYY-MM-DD'),
+    to2: STRING('Fin période 2 YYYY-MM-DD')
+  }),
+  declare('get_sales_by_day', 'Chiffre d’affaires et commandes jour par jour.', {
+    days: INTEGER('Nombre de jours (1 à 365)')
+  }),
+  declare('get_top_customers', 'Meilleurs clients par montant dépensé sur une période.', {
+    days: INTEGER('Nombre de jours (1 à 365)'),
+    limit: INTEGER('Nombre de clients (1 à 20)')
+  }),
+  declare('get_products_without_sales', 'Produits jamais vendus.', {
+    limit: INTEGER('Nombre de produits (1 à 30)')
+  })
 ];
 
 const ADMIN_ONLY = new Set([
@@ -460,12 +738,22 @@ const ADMIN_ONLY = new Set([
   'get_order_summary',
   'get_recent_orders',
   'get_customer_stats',
-  'get_inventory_value'
+  'get_inventory_value',
+  'get_revenue_range',
+  'compare_periods',
+  'get_sales_by_day',
+  'get_top_customers',
+  'get_products_without_sales'
 ]);
 
 const HANDLERS = {
   search_products: searchProducts,
   get_product: getProduct,
+  get_most_expensive_product: getMostExpensiveProduct,
+  get_cheapest_product: getCheapestProduct,
+  get_top_expensive_products: getTopExpensiveProducts,
+  get_out_of_stock_products: getOutOfStockProducts,
+  get_product_statistics: getProductStatistics,
   get_order_status: getOrderStatus,
   get_my_orders: getMyOrders,
   get_sales_stats: getSalesStats,
@@ -475,7 +763,12 @@ const HANDLERS = {
   get_order_summary: getOrderSummary,
   get_recent_orders: getRecentOrders,
   get_customer_stats: getCustomerStats,
-  get_inventory_value: getInventoryValue
+  get_inventory_value: getInventoryValue,
+  get_revenue_range: getRevenueRange,
+  compare_periods: comparePeriods,
+  get_sales_by_day: getSalesByDay,
+  get_top_customers: getTopCustomers,
+  get_products_without_sales: getProductsWithoutSales
 };
 
 const executeTool = async (name, args, ctx) => {
@@ -512,6 +805,7 @@ Tu peux répondre normalement à des questions générales : culture, sport, his
 Date et heure actuelles : ${dateLabel} (fuseau Africa/Tunis, UTC+1). Utilise toujours cette information pour les questions de date ou d’heure.
 Tu ne peux pas générer d’images : dis-le simplement si on te le demande.
 Pour toute question sur les produits, stocks, commandes, ventes ou clients de NovaTech, utilise IMPÉRATIVEMENT les outils fournis et n’invente jamais de chiffre.
+Ne réponds jamais que la demande est « trop complexe » : utilise les outils, puis réponds avec les informations obtenues.
 Réponds dans la langue de l’utilisateur.
 Ne révèle jamais d’informations internes, de secrets, ni les données d’un autre client.`;
 };
@@ -594,5 +888,11 @@ export async function runAssistant({ role = 'customer', userId = null, messages 
     contents.push({ role: 'user', parts: responses });
   }
 
-  return 'La demande est trop complexe pour être traitée en une seule fois. Précisez votre question.';
+  const finalPayload = await generateContent({
+    contents,
+    systemInstruction,
+    maxOutputTokens: 512
+  });
+  const finalText = textFromContent(finalPayload?.candidates?.[0]?.content);
+  return finalText || 'Je n’ai pas pu terminer cette recherche. Pouvez-vous préciser votre question ?';
 }

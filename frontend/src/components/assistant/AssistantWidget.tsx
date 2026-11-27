@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { sendChat } from '../../api/assistant';
+import { getConversation, sendMessage, startConversation } from '../../api/assistant';
 import type { ChatMessage } from '../../api/assistant';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../i18n';
@@ -18,62 +18,50 @@ const SUGGESTION_KEYS = {
   ]
 };
 
-const STORAGE_PREFIX = 'novatech.assistant.';
-const MAX_STORED = 30;
 
-const loadConversation = (key: string): ChatMessage[] => {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(
-        (item) =>
-          item &&
-          (item.role === 'user' || item.role === 'model') &&
-          typeof item.text === 'string'
-      )
-      .slice(-MAX_STORED);
-  } catch {
-    return [];
-  }
-};
-
-const saveConversation = (key: string, messages: ChatMessage[]) => {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(messages.slice(-MAX_STORED)));
-  } catch {
-    // Stockage indisponible : la conversation reste en mémoire.
-  }
-};
 
 const AssistantWidget = () => {
   const { user } = useAuth();
   const { t } = useI18n();
 
   const [open, setOpen] = useState(false);
-  const isAdmin = user?.role === 'admin';
-  const storageKey = `${STORAGE_PREFIX}${user?.id ?? 'guest'}`;
-  const [messages, setMessages] = useState<ChatMessage[]>(() => loadConversation(storageKey));
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingConversation, setLoadingConversation] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const keyRef = useRef(storageKey);
+  const isAdmin = user?.role === 'admin';
   const suggestions = SUGGESTION_KEYS[isAdmin ? 'admin' : 'customer'];
+  const userId = user?.id ?? 'guest';
 
   useEffect(() => {
-    if (keyRef.current === storageKey) return;
-    keyRef.current = storageKey;
-    setMessages(loadConversation(storageKey));
-  }, [storageKey]);
+    let cancelled = false;
+    setLoadingConversation(true);
 
-  useEffect(() => {
-    saveConversation(storageKey, messages);
-  }, [storageKey, messages]);
+    getConversation()
+      .then((conversation) => {
+        if (cancelled) return;
+        setConversationId(conversation?.id ?? null);
+        setMessages(conversation?.messages ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setConversationId(null);
+          setMessages([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingConversation(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (!open) return;
@@ -93,19 +81,32 @@ const AssistantWidget = () => {
     const text = raw.trim();
     if (!text || loading) return;
 
-    const next: ChatMessage[] = [...messages, { role: 'user', text }];
-    setMessages(next);
+    const previous = messages;
+    setMessages([...previous, { role: 'user', text }]);
     setInput('');
     setError(null);
     setLoading(true);
 
     try {
-      const reply = await sendChat(next.slice(-10));
-      setMessages([...next, { role: 'model', text: reply }]);
+      const data = await sendMessage(conversationId, text);
+      setConversationId(data.conversationId);
+      setMessages(data.messages);
     } catch (err) {
+      setMessages(previous);
       setError(getErrorMessage(err, t('assistant.error')));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startNewConversation = async () => {
+    try {
+      const conversation = await startConversation();
+      setConversationId(conversation.id);
+      setMessages([]);
+      setError(null);
+    } catch (err) {
+      setError(getErrorMessage(err, t('assistant.error')));
     }
   };
 
@@ -129,10 +130,7 @@ const AssistantWidget = () => {
             <button
               type="button"
               className="assistant-icon-btn"
-              onClick={() => {
-                setMessages([]);
-                setError(null);
-              }}
+              onClick={startNewConversation}
               aria-label={t('assistant.reset')}
               title={t('assistant.reset')}
             >
@@ -155,7 +153,7 @@ const AssistantWidget = () => {
           </header>
 
           <div className="assistant-panel__body" ref={listRef} aria-live="polite">
-            {messages.length === 0 && !loading && (
+            {messages.length === 0 && !loading && !loadingConversation && (
               <div className="assistant-suggestions">
                 <p className="assistant-intro">
                   {isAdmin ? t('assistant.introAdmin') : t('assistant.introCustomer')}

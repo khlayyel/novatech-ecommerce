@@ -26,7 +26,7 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 | 2 | Modélisation Mongoose (produits, paniers, commandes, utilisateurs) | ✅ | `backend/src/models/` + `Category`, `AuditLog` |
 | 3 | API produits et panier (liste, détail, ajout, quantité, suppression) | ✅ | `product.controller.js`, `cart.controller.js`, tests `products.test.js` / `cart.test.js` |
 | 4 | Stripe : PaymentIntents, commande *pending*, webhook signé | ✅ | `stripe.service.js`, `order.controller.js`, test `webhook.test.js` |
-| 5 | Tests backend Jest + Supertest, dépendances mockées | ✅ | 8 suites, **105 tests**, MongoDB en mémoire |
+| 5 | Tests backend Jest + Supertest, dépendances mockées | ✅ | 8 suites, **108 tests**, MongoDB en mémoire |
 | 6 | Frontend React + TypeScript, Axios, routage | ✅ | `frontend/src/`, `api/request.ts`, React Router 7 |
 | 7 | Composants clés : catalogue, panier, Stripe Elements, confirmation | ✅ | `pages/`, `components/CheckoutForm.tsx` |
 | 8 | Tests frontend Jest + Testing Library | ✅ | 18 suites, **72 tests** |
@@ -65,7 +65,7 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 
 | Contrôle | Commande | Résultat |
 |---|---|---|
-| Tests backend | `npm test --prefix backend` | **105 / 105** |
+| Tests backend | `npm test --prefix backend` | **108 / 108** |
 | Tests frontend | `npm test --prefix frontend` | **72 / 72** |
 | Lint backend | `npm run lint --prefix backend` | 0 erreur |
 | Lint frontend | `npm run lint --prefix frontend` | 0 erreur |

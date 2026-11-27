@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AssistantWidget from '../components/assistant/AssistantWidget';
 import * as assistantApi from '../api/assistant';
@@ -16,11 +16,27 @@ const mockedApi = jest.mocked(assistantApi);
 const customerUser: User = { id: 'u1', name: 'Client', email: 'client@novatech.fr', role: 'customer' };
 const adminUser: User = { id: 'a1', name: 'Admin', email: 'admin@novatech.fr', role: 'admin' };
 
+const REPLY = 'Voici la réponse de l’assistant.';
+
 beforeEach(() => {
-  window.localStorage.clear();
   jest.clearAllMocks();
   mockAuth.user = null;
-  mockedApi.sendChat.mockResolvedValue('Voici la réponse de l’assistant.');
+
+  mockedApi.getConversation.mockResolvedValue(null);
+  mockedApi.startConversation.mockResolvedValue({
+    id: 'conv-new',
+    role: 'customer',
+    title: '',
+    messages: []
+  });
+  mockedApi.sendMessage.mockImplementation(async (conversationId, text) => ({
+    conversationId: conversationId ?? 'conv-1',
+    reply: REPLY,
+    messages: [
+      { role: 'user', text },
+      { role: 'model', text: REPLY }
+    ]
+  }));
 });
 
 const openWidget = async () => {
@@ -45,14 +61,13 @@ describe('AssistantWidget', () => {
     render(<AssistantWidget />);
 
     const dialog = await openWidget();
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: /Quels écrans 4K/i })
-    );
+    await userEvent.click(within(dialog).getByRole('button', { name: /Quels écrans 4K/i }));
 
-    expect(await within(dialog).findByText('Voici la réponse de l’assistant.')).toBeInTheDocument();
-    expect(mockedApi.sendChat).toHaveBeenCalledWith([
-      { role: 'user', text: 'Quels écrans 4K avez-vous en stock ?' }
-    ]);
+    expect(await within(dialog).findByText(REPLY)).toBeInTheDocument();
+    expect(mockedApi.sendMessage).toHaveBeenCalledWith(
+      null,
+      'Quels écrans 4K avez-vous en stock ?'
+    );
   });
 
   it('écrit un message libre et le transmet', async () => {
@@ -62,30 +77,8 @@ describe('AssistantWidget', () => {
     await userEvent.type(within(dialog).getByRole('textbox'), 'Avez-vous des claviers ?');
     await userEvent.click(within(dialog).getByRole('button', { name: /Envoyer/i }));
 
-    expect(await within(dialog).findByText('Voici la réponse de l’assistant.')).toBeInTheDocument();
-    expect(mockedApi.sendChat).toHaveBeenCalledWith([
-      { role: 'user', text: 'Avez-vous des claviers ?' }
-    ]);
-  });
-
-  it('conserve la conversation après un remontage (rafraîchissement)', async () => {
-    const first = render(<AssistantWidget />);
-
-    const dialog = await openWidget();
-    await userEvent.type(within(dialog).getByRole('textbox'), 'Bonjour');
-    await userEvent.click(within(dialog).getByRole('button', { name: /Envoyer/i }));
-    await within(dialog).findByText('Voici la réponse de l’assistant.');
-
-    await waitFor(() => {
-      expect(window.localStorage.getItem('novatech.assistant.guest')).toContain('Bonjour');
-    });
-
-    first.unmount();
-    render(<AssistantWidget />);
-
-    const reopened = await openWidget();
-    expect(within(reopened).getByText('Bonjour')).toBeInTheDocument();
-    expect(within(reopened).getByText('Voici la réponse de l’assistant.')).toBeInTheDocument();
+    expect(await within(dialog).findByText(REPLY)).toBeInTheDocument();
+    expect(mockedApi.sendMessage).toHaveBeenCalledWith(null, 'Avez-vous des claviers ?');
   });
 
   it('propose les questions analytiques à un administrateur', async () => {
@@ -99,17 +92,37 @@ describe('AssistantWidget', () => {
     ).toBeInTheDocument();
   });
 
-  it('réinitialise la conversation', async () => {
+  it('restaure la conversation persistée (rafraîchissement)', async () => {
+    mockedApi.getConversation.mockResolvedValue({
+      id: 'conv-old',
+      role: 'customer',
+      title: 'Bonjour',
+      messages: [
+        { role: 'user', text: 'Bonjour' },
+        { role: 'model', text: 'Réponse sauvegardée' }
+      ]
+    });
+
+    render(<AssistantWidget />);
+
+    const dialog = await openWidget();
+
+    expect(await within(dialog).findByText('Bonjour')).toBeInTheDocument();
+    expect(within(dialog).getByText('Réponse sauvegardée')).toBeInTheDocument();
+  });
+
+  it('démarre une nouvelle conversation isolée', async () => {
     render(<AssistantWidget />);
 
     const dialog = await openWidget();
     await userEvent.type(within(dialog).getByRole('textbox'), 'Bonjour');
     await userEvent.click(within(dialog).getByRole('button', { name: /Envoyer/i }));
-    await within(dialog).findByText('Voici la réponse de l’assistant.');
+    await within(dialog).findByText(REPLY);
 
     await userEvent.click(within(dialog).getByRole('button', { name: /Nouvelle conversation/i }));
 
-    expect(within(dialog).queryByText('Voici la réponse de l’assistant.')).not.toBeInTheDocument();
+    expect(mockedApi.startConversation).toHaveBeenCalled();
+    expect(within(dialog).queryByText(REPLY)).not.toBeInTheDocument();
     expect(within(dialog).getByText(/Bonjour !/)).toBeInTheDocument();
   });
 });
