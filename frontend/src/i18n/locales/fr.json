@@ -22,7 +22,8 @@
     "range": "{from}–{to} sur {total} ligne(s)",
     "empty": "Aucune donnée à afficher.",
     "previous": "Page précédente",
-    "next": "Page suivante"
+    "next": "Page suivante",
+    "search": "Rechercher dans le tableau…"
   },
   "nav": {
     "catalog": "Catalogue",

@@ -8,6 +8,8 @@ export interface Column<T> {
   render?: (row: T) => ReactNode;
   /** Valeur utilisée pour le tri (par défaut : row[key]). */
   sortValue?: (row: T) => string | number;
+  /** Texte utilisé par la recherche globale du tableau. */
+  searchValue?: (row: T) => string;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
   width?: string;
@@ -38,8 +40,9 @@ const readPageSize = (key: string | null, fallback: number) => {
 };
 
 /**
- * Tableau standard du projet : tri par clic sur l'en-tête, pagination
- * (5/10/15/20/50 lignes, 10 par défaut, choix mémorisé) et détail dépliable.
+ * Tableau standard du projet (source unique) : recherche en temps réel,
+ * tri par clic sur l'en-tête, sélecteur de lignes en haut à gauche,
+ * pagination centrée sous le tableau et détail dépliable.
  */
 function DataTable<T>({
   columns,
@@ -57,18 +60,36 @@ function DataTable<T>({
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+
+  const rowSearchText = (row: T): string =>
+    columns
+      .map((column) => {
+        if (column.searchValue) return column.searchValue(row);
+        if (column.sortValue) return String(column.sortValue(row));
+        return String((row as Record<string, unknown>)[column.key] ?? '');
+      })
+      .join(' ')
+      .toLowerCase();
+
+  const matched = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return rows;
+    return rows.filter((row) => rowSearchText(row).includes(term));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, query, columns]);
 
   const sorted = useMemo(() => {
-    if (!sort) return rows;
+    if (!sort) return matched;
     const column = columns.find((item) => item.key === sort.key);
-    if (!column) return rows;
+    if (!column) return matched;
 
     const getValue =
       column.sortValue ??
       ((row: T) => (row as Record<string, unknown>)[column.key] as string | number);
 
     const direction = sort.direction === 'asc' ? 1 : -1;
-    return [...rows].sort((a, b) => {
+    return [...matched].sort((a, b) => {
       const left = getValue(a);
       const right = getValue(b);
       if (typeof left === 'number' && typeof right === 'number') {
@@ -76,7 +97,7 @@ function DataTable<T>({
       }
       return String(left ?? '').localeCompare(String(right ?? ''), 'fr', { numeric: true }) * direction;
     });
-  }, [rows, sort, columns]);
+  }, [matched, sort, columns]);
 
   const pages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const currentPage = Math.min(page, pages);
@@ -84,8 +105,8 @@ function DataTable<T>({
   useEffect(() => {
     setPage(1);
     setExpanded(null);
-    // Le tri, la taille de page ou le volume de données changent : retour page 1.
-  }, [rows.length, pageSize, sort]);
+    // Le tri, la taille de page, la recherche ou le volume changent : retour page 1.
+  }, [rows.length, pageSize, sort, query]);
 
   const from = sorted.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const to = Math.min(currentPage * pageSize, sorted.length);
@@ -123,6 +144,33 @@ function DataTable<T>({
 
   return (
     <div className="data-table">
+      <div className="data-table__toolbar">
+        <label className="data-table__size">
+          <span className="muted small">{t('table.rowsPerPage')}</span>
+          <select
+            className="input input--select input--compact"
+            value={pageSize}
+            onChange={(event) => changePageSize(Number(event.target.value))}
+            aria-label={t('table.rowsPerPage')}
+          >
+            {PAGE_SIZES.map((size) => (
+              <option key={size} value={size}>{size}</option>
+            ))}
+          </select>
+        </label>
+
+        <div className="data-table__search">
+          <input
+            type="search"
+            className="input"
+            placeholder={t('table.search')}
+            aria-label={t('table.search')}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
+      </div>
+
       <div className="table-wrapper">
         <table className="admin-table">
           <thead>
@@ -196,24 +244,7 @@ function DataTable<T>({
         <p className="muted data-table__empty">{emptyLabel ?? t('table.empty')}</p>
       ) : (
         <div className="data-table__foot">
-          <span className="muted small">
-            {t('table.range', { from, to, total: sorted.length })}
-          </span>
-
-          <label className="data-table__size">
-            <span className="muted small">{t('table.rowsPerPage')}</span>
-            <select
-              className="input input--select input--compact"
-              value={pageSize}
-              onChange={(event) => changePageSize(Number(event.target.value))}
-            >
-              {PAGE_SIZES.map((size) => (
-                <option key={size} value={size}>{size}</option>
-              ))}
-            </select>
-          </label>
-
-          <nav className="pagination" aria-label="Pagination">
+          <nav className="pagination" aria-label={t('table.rowsPerPage')}>
             <button
               type="button"
               className="pagination__btn"
@@ -262,6 +293,10 @@ function DataTable<T>({
               ›
             </button>
           </nav>
+
+          <span className="data-table__range muted small">
+            {t('table.range', { from, to, total: sorted.length })}
+          </span>
         </div>
       )}
     </div>

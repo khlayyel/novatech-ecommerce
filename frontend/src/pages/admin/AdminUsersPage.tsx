@@ -22,31 +22,24 @@ const AdminUsersPage = () => {
   const { user: currentUser } = useAuth();
 
   const [users, setUsers] = useState<AdminUserRow[]>([]);
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300);
-    return () => window.clearTimeout(timer);
-  }, [searchInput]);
-
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await listUsers({ search: search || undefined, role: role || undefined, limit: 200 });
+      const data = await listUsers({ role: role || undefined, limit: 200 });
       setUsers(data.users);
     } catch (err) {
       setError(getErrorMessage(err, 'Impossible de charger les clients.'));
     } finally {
       setLoading(false);
     }
-  }, [search, role]);
+  }, [role]);
 
   useEffect(() => {
     load();
@@ -86,6 +79,7 @@ const AdminUsersPage = () => {
         key: 'name',
         label: 'Client',
         sortValue: (row) => row.name,
+        searchValue: (row) => `${row.name} ${row.email}`,
         render: (row) => (
           <div className="admin-user__cell">
             <span className="admin-avatar admin-avatar--sm" aria-hidden="true">
@@ -179,7 +173,7 @@ const AdminUsersPage = () => {
     <div className="admin-panel">
       <Panel
         title="Filtres"
-        subtitle="Rechercher un nom ou un email, filtrer par rôle"
+        subtitle="Filtrer les comptes par rôle"
         storageKey="users-filters"
         actions={
           <>
@@ -190,18 +184,7 @@ const AdminUsersPage = () => {
           </>
         }
       >
-        <div className="filter-grid filter-grid--two">
-          <label className="field">
-            <span>Recherche</span>
-            <input
-              type="search"
-              className="input"
-              placeholder="Nom ou email…"
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-            />
-          </label>
-
+        <div className="filter-grid">
           <label className="field">
             <span>Rôle</span>
             <select className="input input--select" value={role} onChange={(event) => setRole(event.target.value)}>

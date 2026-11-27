@@ -66,6 +66,20 @@ describe('DataTable', () => {
     expect(window.localStorage.getItem('novatech.table.jest.size')).toBe('5');
   });
 
+  it('filtre en temps réel via la recherche intégrée au tableau', async () => {
+    renderTable();
+
+    const search = screen.getByRole('searchbox');
+    await userEvent.type(search, 'Produit 05');
+
+    expect(screen.getAllByRole('row')).toHaveLength(2);
+    expect(screen.getByText(/1.1 sur 1/)).toBeInTheDocument();
+
+    await userEvent.clear(search);
+
+    expect(screen.getAllByRole('row')).toHaveLength(11);
+  });
+
   it('affiche le message vide quand aucune ligne ne correspond', () => {
     render(<DataTable columns={columns} rows={[]} rowKey={(row) => row.id} emptyLabel="Rien à afficher." />);
 

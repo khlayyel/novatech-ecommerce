@@ -23,7 +23,6 @@ const AdminProductsPage = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [tree, setTree] = useState<CategoryInfo[]>([]);
-  const [search, setSearch] = useState('');
   const [groupFilter, setGroupFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [subcategoryFilter, setSubcategoryFilter] = useState('');
@@ -69,7 +68,6 @@ const AdminProductsPage = () => {
   }, [tree, categoryFilter]);
 
   const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
     return products.filter((product) => {
       if (groupFilter) {
         const family = tree.find((item) => item.name === String(product.category));
@@ -77,14 +75,9 @@ const AdminProductsPage = () => {
       }
       if (categoryFilter && String(product.category) !== categoryFilter) return false;
       if (subcategoryFilter && (product.subcategory || '') !== subcategoryFilter) return false;
-      if (!term) return true;
-      return (
-        product.name.toLowerCase().includes(term) ||
-        String(product.category).toLowerCase().includes(term) ||
-        (product.subcategory || '').toLowerCase().includes(term)
-      );
+      return true;
     });
-  }, [products, tree, search, groupFilter, categoryFilter, subcategoryFilter]);
+  }, [products, tree, groupFilter, categoryFilter, subcategoryFilter]);
 
   const handleDelete = async (product: Product) => {
     const confirmed = window.confirm(`Supprimer définitivement « ${product.name} » du catalogue ?`);
@@ -120,6 +113,7 @@ const AdminProductsPage = () => {
         key: 'name',
         label: 'Produit',
         sortValue: (product) => product.name,
+        searchValue: (product) => `${product.name} ${product.subcategory || ''} ${product.category}`,
         render: (product) => (
           <div className="admin-product__cell">
             <img src={product.imageUrl} alt="" />
@@ -206,7 +200,7 @@ const AdminProductsPage = () => {
     <div className="admin-panel">
       <Panel
         title="Filtres"
-        subtitle="Recherche par nom, famille ou sous-famille"
+        subtitle="Catégorie → famille → sous-famille"
         storageKey="products-filters"
         actions={<span className="muted small">{filtered.length} / {products.length} produit(s)</span>}
       >
@@ -260,17 +254,6 @@ const AdminProductsPage = () => {
                 <option key={name} value={name}>{name}</option>
               ))}
             </select>
-          </label>
-
-          <label className="field">
-            <span>Recherche</span>
-            <input
-              type="search"
-              className="input"
-              placeholder="NovaBook, Écrans…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
           </label>
         </div>
       </Panel>

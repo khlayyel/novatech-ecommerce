@@ -35,7 +35,6 @@ const AdminOrdersPage = () => {
 
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [status, setStatus] = useState('');
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -86,15 +85,7 @@ const AdminOrdersPage = () => {
     }
   };
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return orders;
-    return orders.filter((order) => {
-      const reference = order._id.slice(-8).toLowerCase();
-      const customer = order.user ? `${order.user.name} ${order.user.email}`.toLowerCase() : 'invité';
-      return reference.includes(term) || customer.includes(term);
-    });
-  }, [orders, search]);
+  const filtered = orders;
 
   const columns: Column<AdminOrder>[] = useMemo(
     () => [
@@ -102,12 +93,14 @@ const AdminOrdersPage = () => {
         key: 'id',
         label: 'Commande',
         sortValue: (order) => order.createdAt,
+        searchValue: (order) => `${order._id} ${order._id.slice(-8)}`,
         render: (order) => <span className="mono">{order._id.slice(-8).toUpperCase()}</span>
       },
       {
         key: 'client',
         label: 'Client',
         sortValue: (order) => (order.user ? order.user.name : 'Invité'),
+        searchValue: (order) => (order.user ? `${order.user.name} ${order.user.email}` : 'Invité'),
         render: (order) =>
           order.user ? (
             <span>
@@ -224,7 +217,7 @@ const AdminOrdersPage = () => {
     <div className="admin-panel">
       <Panel
         title="Filtres"
-        subtitle="Filtrer par statut de commande"
+        subtitle="Filtrer les commandes par statut"
         storageKey="orders-filters"
         actions={
           <>
@@ -235,7 +228,7 @@ const AdminOrdersPage = () => {
           </>
         }
       >
-        <div className="filter-grid filter-grid--two">
+        <div className="filter-grid">
           <label className="field">
             <span>Statut</span>
             <select
@@ -247,17 +240,6 @@ const AdminOrdersPage = () => {
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
-          </label>
-
-          <label className="field">
-            <span>Recherche</span>
-            <input
-              type="search"
-              className="input"
-              placeholder="Référence, client ou email…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
           </label>
         </div>
       </Panel>

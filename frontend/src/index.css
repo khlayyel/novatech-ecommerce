@@ -2698,14 +2698,39 @@ textarea.input {
 }
 
 /* Tableau générique */
-.data-table__foot {
+.data-table__toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.9rem;
-  padding: 0.8rem 1rem;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(245, 246, 251, 0.55);
+}
+
+.data-table__search {
+  flex: 1 1 240px;
+  max-width: 340px;
+  margin-left: auto;
+}
+
+.data-table__search .input {
+  width: 100%;
+}
+
+.data-table__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
   border-top: 1px solid var(--line);
+}
+
+.data-table__range {
+  display: block;
 }
 
 .data-table__size {

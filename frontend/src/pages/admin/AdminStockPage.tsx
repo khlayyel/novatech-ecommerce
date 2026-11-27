@@ -28,7 +28,6 @@ const AdminStockPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StockFilter>('all');
-  const [search, setSearch] = useState('');
   const [groupFilter, setGroupFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [subcategoryFilter, setSubcategoryFilter] = useState('');
@@ -73,7 +72,6 @@ const AdminStockPage = () => {
   }, [tree, categoryFilter]);
 
   const visible = useMemo(() => {
-    const term = search.trim().toLowerCase();
     return products.filter((product) => {
       if (filter === 'low' && !(product.stock > 0 && product.stock <= 5)) return false;
       if (filter === 'out' && product.stock !== 0) return false;
@@ -83,10 +81,9 @@ const AdminStockPage = () => {
         const family = tree.find((item) => item.name === String(product.category));
         if ((family?.group || '') !== groupFilter) return false;
       }
-      if (!term) return true;
-      return product.name.toLowerCase().includes(term);
+      return true;
     });
-  }, [products, tree, filter, search, groupFilter, categoryFilter, subcategoryFilter]);
+  }, [products, tree, filter, groupFilter, categoryFilter, subcategoryFilter]);
 
   const totals = useMemo(() => {
     const units = products.reduce((sum, product) => sum + product.stock, 0);
@@ -252,7 +249,7 @@ const AdminStockPage = () => {
 
       <Panel
         title="Filtres"
-        subtitle="Filtrer par niveau de stock ou par nom"
+        subtitle="Filtrer par famille et niveau de stock"
         storageKey="stock-filters"
         actions={<span className="muted small">{visible.length} / {products.length} produit(s)</span>}
       >
@@ -323,17 +320,6 @@ const AdminStockPage = () => {
               ))}
             </div>
           </div>
-
-          <label className="field">
-            <span>Recherche</span>
-            <input
-              type="search"
-              className="input"
-              placeholder="Rechercher un produit…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </label>
         </div>
       </Panel>
 

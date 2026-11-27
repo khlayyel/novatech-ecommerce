@@ -22,7 +22,8 @@
     "range": "{from}–{to} of {total} row(s)",
     "empty": "Nothing to display.",
     "previous": "Previous page",
-    "next": "Next page"
+    "next": "Next page",
+    "search": "Search in the table…"
   },
   "nav": {
     "catalog": "Catalog",

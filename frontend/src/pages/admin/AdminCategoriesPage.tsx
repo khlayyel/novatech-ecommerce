@@ -15,7 +15,6 @@ const AdminCategoriesPage = () => {
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
-  const [search, setSearch] = useState('');
   const [groupFilter, setGroupFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,17 +43,11 @@ const AdminCategoriesPage = () => {
   );
 
   const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
     return categories.filter((category) => {
       if (groupFilter && (category.group || '') !== groupFilter) return false;
-      if (!term) return true;
-      return (
-        category.name.toLowerCase().includes(term) ||
-        category.description.toLowerCase().includes(term) ||
-        category.subcategories.some((name) => name.toLowerCase().includes(term))
-      );
+      return true;
     });
-  }, [categories, search, groupFilter]);
+  }, [categories, groupFilter]);
 
   const handleDelete = async (category: CategoryInfo) => {
     const confirmed = window.confirm(`Supprimer la famille « ${category.name} » ?`);
@@ -101,6 +94,7 @@ const AdminCategoriesPage = () => {
         key: 'subcategories',
         label: 'Sous-familles',
         sortValue: (category) => category.subcategories.length,
+        searchValue: (category) => category.subcategories.join(' '),
         render: (category) =>
           category.subcategories.length === 0 ? (
             <span className="muted small">—</span>
@@ -168,11 +162,11 @@ const AdminCategoriesPage = () => {
     <div className="admin-panel">
       <Panel
         title="Filtres"
-        subtitle="Rechercher une famille, une description ou une sous-famille"
+        subtitle="Filtrer par catégorie de niveau 1"
         storageKey="categories-filters"
         actions={<span className="muted small">{filtered.length} / {categories.length} famille(s)</span>}
       >
-        <div className="filter-grid filter-grid--two">
+        <div className="filter-grid">
           <label className="field">
             <span>Catégorie</span>
             <select
@@ -185,17 +179,6 @@ const AdminCategoriesPage = () => {
                 <option key={group} value={group}>{group}</option>
               ))}
             </select>
-          </label>
-
-          <label className="field">
-            <span>Recherche</span>
-            <input
-              type="search"
-              className="input"
-              placeholder="Portables, moniteurs…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
           </label>
         </div>
       </Panel>
