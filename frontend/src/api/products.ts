@@ -2,7 +2,9 @@ import api from '../utils/request';
 import type { Product, ProductsResponse } from '../types';
 
 export interface ProductQuery {
+  group?: string;
   category?: string;
+  subcategory?: string;
   search?: string;
   sort?: string;
   page?: number;
@@ -23,4 +25,10 @@ export const getProduct = async (id: string): Promise<Product> => {
 export const listCategories = async (): Promise<string[]> => {
   const { data } = await api.get<{ categories: string[] }>('/products/categories');
   return data.categories;
+};
+
+/** Arbre public des catégories (catégorie → famille → sous-familles). */
+export const listCategoryTree = async () => {
+  const { data } = await api.get<import('../types').CategoryInfo[]>('/categories');
+  return data;
 };

@@ -95,6 +95,7 @@ export interface ProductInput {
 
 export interface CategoryInfo {
   _id: string;
+  group?: string;
   name: string;
   description: string;
   subcategories: string[];
@@ -103,6 +104,7 @@ export interface CategoryInfo {
 }
 
 export interface CategoryInput {
+  group?: string;
   name: string;
   description?: string;
   subcategories?: string[];

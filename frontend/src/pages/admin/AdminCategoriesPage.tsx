@@ -16,6 +16,7 @@ const AdminCategoriesPage = () => {
 
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [search, setSearch] = useState('');
+  const [groupFilter, setGroupFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -37,16 +38,23 @@ const AdminCategoriesPage = () => {
     load();
   }, [load]);
 
+  const groups = useMemo(
+    () => [...new Set(categories.map((category) => category.group || '').filter(Boolean))].sort(),
+    [categories]
+  );
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return categories;
-    return categories.filter(
-      (category) =>
+    return categories.filter((category) => {
+      if (groupFilter && (category.group || '') !== groupFilter) return false;
+      if (!term) return true;
+      return (
         category.name.toLowerCase().includes(term) ||
         category.description.toLowerCase().includes(term) ||
         category.subcategories.some((name) => name.toLowerCase().includes(term))
-    );
-  }, [categories, search]);
+      );
+    });
+  }, [categories, search, groupFilter]);
 
   const handleDelete = async (category: CategoryInfo) => {
     const confirmed = window.confirm(`Supprimer la famille « ${category.name} » ?`);
@@ -66,6 +74,12 @@ const AdminCategoriesPage = () => {
 
   const columns: Column<CategoryInfo>[] = useMemo(
     () => [
+      {
+        key: 'group',
+        label: 'Catégorie',
+        sortValue: (category) => category.group || '',
+        render: (category) => category.group || <span className="muted small">—</span>
+      },
       {
         key: 'name',
         label: 'Famille',
@@ -158,13 +172,27 @@ const AdminCategoriesPage = () => {
         storageKey="categories-filters"
         actions={<span className="muted small">{filtered.length} / {categories.length} famille(s)</span>}
       >
-        <div className="filter-grid">
+        <div className="filter-grid filter-grid--two">
+          <label className="field">
+            <span>Catégorie</span>
+            <select
+              className="input input--select"
+              value={groupFilter}
+              onChange={(event) => setGroupFilter(event.target.value)}
+            >
+              <option value="">Toutes les catégories</option>
+              {groups.map((group) => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+            </select>
+          </label>
+
           <label className="field">
             <span>Recherche</span>
             <input
               type="search"
               className="input"
-              placeholder="Ordinateurs, Portables, moniteurs…"
+              placeholder="Portables, moniteurs…"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />

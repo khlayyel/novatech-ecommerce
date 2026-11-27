@@ -63,6 +63,7 @@ export const createCategory = asyncHandler(async (req, res) => {
   }
 
   const category = await Category.create({
+    group: normalizeName(req.body.group),
     name,
     description: normalizeName(req.body.description),
     subcategories: normalizeSubcategories(req.body.subcategories) ?? []
@@ -90,6 +91,9 @@ export const updateCategory = asyncHandler(async (req, res) => {
   }
 
   category.name = name;
+  if (req.body.group !== undefined) {
+    category.group = normalizeName(req.body.group);
+  }
   if (req.body.description !== undefined) {
     category.description = normalizeName(req.body.description);
   }

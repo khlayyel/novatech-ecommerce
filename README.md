@@ -110,7 +110,7 @@ Base : `http://localhost:5000/api`
 | Méthode | Route | Auth | Description | Codes |
 |---|---|---|---|---|
 | GET | `/health` | — | Sonde de santé (Render/Docker) | 200 / 503 |
-| GET | `/products` | — | Catalogue paginé : `?category=`, `?search=`, `?sort=recent\|price-asc\|price-desc`, `?page=`, `?limit=` | 200 |
+| GET | `/products` | — | Catalogue paginé : `?group=`, `?category=`, `?subcategory=`, `?search=`, `?sort=recent\|price-asc\|price-desc`, `?page=`, `?limit=` | 200 |
 | GET | `/products/categories` | — | Catégories distinctes | 200 |
 | GET | `/products/:id` | — | Détail produit | 200 / 400 / 404 |
 | POST | `/auth/register` | X-Cart-Id (optionnel) | Inscription + fusion du panier invité | 201 / 400 / 409 |
@@ -165,7 +165,9 @@ Les écrans **Produits**, **Commandes** et **Clients** proposent un **export CSV
 
 **CRUD en pages dédiées** : chaque ajout et chaque modification ouvre sa propre page (`/new`, `/:id/edit`) avec son endpoint dédié (`POST`, `PUT`, `DELETE`). Le formulaire d'édition est chargé depuis l'API et **prérempli avec les données réelles** de l'élément ; l'annulation ramène à la liste.
 
-**Standard d'interface** : chaque page de l'admin est composée de **panneaux repliables** (`Panel` : filtres, tableau, formulaire) dont l'état est mémorisé par le navigateur. La **barre latérale se replie** en rail d'icônes via le bouton de la topbar (état mémorisé ; tiroir sur mobile). Tous les tableaux utilisent le même composant `DataTable` : tri par clic sur n'importe quel en-tête de colonne, pagination **10 lignes par défaut** avec choix 5 / 10 / 15 / 20 / 50 (choix mémorisé par tableau) et compteur « X–Y sur N ».
+**Hiérarchie du catalogue** : `Catégorie` (niveau 1, champ `Category.group`) → `Famille` (`Category.name`) → `Sous-famille` (`Product.subcategory`). Les filtres sont en cascade dans le catalogue public, les produits, les stocks et les catégories : la famille n'est sélectionnable qu'après la catégorie, la sous-famille qu'après la famille.
+
+**Standard d'interface** : chaque page de l'admin est composée d'un **conteneur principal unique** (`.admin-panel`, cadre visible) qui regroupe tous les éléments, et à l'intérieur duquel chaque bloc est une **carte distincte et repliable** (`Panel` : filtres, tableau, formulaire) dont l'état est mémorisé par le navigateur. La **barre latérale se replie** en rail d'icônes via le bouton de la topbar (état mémorisé ; tiroir sur mobile). Tous les tableaux utilisent le même composant `DataTable` : tri par clic sur n'importe quel en-tête de colonne, pagination **10 lignes par défaut** avec choix 5 / 10 / 15 / 20 / 50 (choix mémorisé par tableau) et compteur « X–Y sur N ».
 
 Le rôle n'est pas embarqué dans le JWT : `requireAdmin` le relit en base à chaque requête, ce qui permet une révocation immédiate. Un client authentifié reçoit `403` sur `/api/admin/*`.
 

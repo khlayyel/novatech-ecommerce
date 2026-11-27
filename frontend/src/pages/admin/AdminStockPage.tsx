@@ -4,11 +4,12 @@ import DataTable from '../../components/ui/DataTable';
 import type { Column } from '../../components/ui/DataTable';
 import Spinner from '../../components/Spinner';
 import * as productsApi from '../../api/products';
-import { updateProductStock } from '../../api/admin';
+import { updateProductStock, listCategories } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatPrice } from '../../utils/format';
 import type { Product } from '../../types';
+import type { CategoryInfo } from '../../types';
 
 type StockFilter = 'all' | 'low' | 'out';
 
@@ -23,10 +24,14 @@ const AdminStockPage = () => {
   const { showToast } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [tree, setTree] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StockFilter>('all');
   const [search, setSearch] = useState('');
+  const [groupFilter, setGroupFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('');
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
 
@@ -34,8 +39,12 @@ const AdminStockPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await productsApi.listProducts({ limit: 200, sort: 'recent' });
+      const [data, categories] = await Promise.all([
+        productsApi.listProducts({ limit: 200, sort: 'recent' }),
+        listCategories()
+      ]);
       setProducts(data.products);
+      setTree(categories);
       setDrafts({});
     } catch (err) {
       setError(getErrorMessage(err, 'Impossible de charger les stocks.'));
@@ -48,15 +57,36 @@ const AdminStockPage = () => {
     load();
   }, [load]);
 
+  const groups = useMemo(
+    () => [...new Set(tree.map((item) => item.group || '').filter(Boolean))].sort(),
+    [tree]
+  );
+
+  const familyOptions = useMemo(() => {
+    if (!groupFilter) return tree;
+    return tree.filter((item) => (item.group || '') === groupFilter);
+  }, [tree, groupFilter]);
+
+  const subcategoryOptions = useMemo(() => {
+    const family = tree.find((item) => item.name === categoryFilter);
+    return family?.subcategories ?? [];
+  }, [tree, categoryFilter]);
+
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
     return products.filter((product) => {
       if (filter === 'low' && !(product.stock > 0 && product.stock <= 5)) return false;
       if (filter === 'out' && product.stock !== 0) return false;
+      if (categoryFilter && String(product.category) !== categoryFilter) return false;
+      if (subcategoryFilter && (product.subcategory || '') !== subcategoryFilter) return false;
+      if (groupFilter) {
+        const family = tree.find((item) => item.name === String(product.category));
+        if ((family?.group || '') !== groupFilter) return false;
+      }
       if (!term) return true;
       return product.name.toLowerCase().includes(term);
     });
-  }, [products, filter, search]);
+  }, [products, tree, filter, search, groupFilter, categoryFilter, subcategoryFilter]);
 
   const totals = useMemo(() => {
     const units = products.reduce((sum, product) => sum + product.stock, 0);
@@ -227,6 +257,57 @@ const AdminStockPage = () => {
         actions={<span className="muted small">{visible.length} / {products.length} produit(s)</span>}
       >
         <div className="filter-grid filter-grid--two">
+          <label className="field">
+            <span>Catégorie</span>
+            <select
+              className="input input--select"
+              value={groupFilter}
+              onChange={(event) => {
+                setGroupFilter(event.target.value);
+                setCategoryFilter('');
+                setSubcategoryFilter('');
+              }}
+            >
+              <option value="">Toutes les catégories</option>
+              {groups.map((group) => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Famille</span>
+            <select
+              className="input input--select"
+              value={categoryFilter}
+              disabled={familyOptions.length === 0}
+              onChange={(event) => {
+                setCategoryFilter(event.target.value);
+                setSubcategoryFilter('');
+              }}
+            >
+              <option value="">Toutes les familles</option>
+              {familyOptions.map((family) => (
+                <option key={family._id} value={family.name}>{family.name}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Sous-famille</span>
+            <select
+              className="input input--select"
+              value={subcategoryFilter}
+              disabled={!categoryFilter || subcategoryOptions.length === 0}
+              onChange={(event) => setSubcategoryFilter(event.target.value)}
+            >
+              <option value="">Toutes les sous-familles</option>
+              {subcategoryOptions.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </label>
+
           <div className="field">
             <span>Niveau de stock</span>
             <div className="chip-row" role="group" aria-label="Filtrer les stocks">

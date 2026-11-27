@@ -1,20 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductList from '../components/ProductList';
 import * as productsApi from '../api/products';
 import { getErrorMessage } from '../utils/request';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
-import type { Product } from '../types';
+import type { CategoryInfo, Product } from '../types';
 
 /**
- * Accueil : section héro + catalogue filtrable (catégorie, recherche, tri)
- * avec pagination "Afficher plus".
+ * Accueil : héro + catalogue filtrable.
+ * Les filtres sont hiérarchiques : Catégorie → Famille → Sous-famille
+ * (une famille n'est sélectionnable qu'après une catégorie).
  */
 const HomePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [tree, setTree] = useState<CategoryInfo[]>([]);
+  const [group, setGroup] = useState('');
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('recent');
@@ -35,6 +38,14 @@ const HomePage = () => {
     return () => window.clearTimeout(timer);
   }, [searchInput]);
 
+  // Arbre des catégories (catégorie → famille → sous-familles).
+  useEffect(() => {
+    productsApi
+      .listCategoryTree()
+      .then(setTree)
+      .catch(() => undefined);
+  }, []);
+
   // Chargement de la première page à chaque changement de filtre.
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +55,9 @@ const HomePage = () => {
       setError(null);
       try {
         const data = await productsApi.listProducts({
+          group: group || undefined,
           category: category || undefined,
+          subcategory: subcategory || undefined,
           search: search || undefined,
           sort,
           page: 1,
@@ -67,21 +80,30 @@ const HomePage = () => {
     return () => {
       cancelled = true;
     };
-  }, [category, search, sort]);
+  }, [group, category, subcategory, search, sort]);
 
-  // Catégories pour les filtres (chargées une fois).
-  useEffect(() => {
-    productsApi
-      .listCategories()
-      .then(setCategories)
-      .catch(() => undefined);
-  }, []);
+  const groups = useMemo(
+    () => [...new Set(tree.map((item) => item.group || '').filter(Boolean))].sort(),
+    [tree]
+  );
+
+  const families = useMemo(() => {
+    if (!group) return [];
+    return tree.filter((item) => (item.group || '') === group);
+  }, [tree, group]);
+
+  const subcategories = useMemo(() => {
+    const family = tree.find((item) => item.name === category);
+    return family?.subcategories ?? [];
+  }, [tree, category]);
 
   const loadMore = async () => {
     setLoadingMore(true);
     try {
       const data = await productsApi.listProducts({
+        group: group || undefined,
         category: category || undefined,
+        subcategory: subcategory || undefined,
         search: search || undefined,
         sort,
         page: page + 1,
@@ -140,29 +162,62 @@ const HomePage = () => {
         <header className="section-head">
           <h2 className="section-head__title">Notre catalogue</h2>
           <p className="section-head__subtitle">
-            {total} référence{total > 1 ? 's' : ''} disponible{total > 1 ? 's' : ''} — filtrez par catégorie ou recherchez.
+            {total} référence{total > 1 ? 's' : ''} disponible{total > 1 ? 's' : ''} — filtrez par catégorie, famille puis sous-famille.
           </p>
         </header>
 
         <div className="catalog__toolbar">
-          <div className="chip-row" role="group" aria-label="Filtrer par catégorie">
-            <button
-              type="button"
-              className={`chip${category === '' ? ' chip--active' : ''}`}
-              onClick={() => setCategory('')}
-            >
-              Tous
-            </button>
-            {categories.map((name) => (
-              <button
-                key={name}
-                type="button"
-                className={`chip${category === name ? ' chip--active' : ''}`}
-                onClick={() => setCategory(name)}
+          <div className="catalog__cascade">
+            <label className="field">
+              <span>Catégorie</span>
+              <select
+                className="input input--select"
+                value={group}
+                onChange={(event) => {
+                  setGroup(event.target.value);
+                  setCategory('');
+                  setSubcategory('');
+                }}
               >
-                {name}
-              </button>
-            ))}
+                <option value="">Toutes les catégories</option>
+                {groups.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Famille</span>
+              <select
+                className="input input--select"
+                value={category}
+                disabled={!group || families.length === 0}
+                onChange={(event) => {
+                  setCategory(event.target.value);
+                  setSubcategory('');
+                }}
+              >
+                <option value="">Toutes les familles</option>
+                {families.map((family) => (
+                  <option key={family._id} value={family.name}>{family.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Sous-famille</span>
+              <select
+                className="input input--select"
+                value={subcategory}
+                disabled={!category || subcategories.length === 0}
+                onChange={(event) => setSubcategory(event.target.value)}
+              >
+                <option value="">Toutes les sous-familles</option>
+                {subcategories.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <div className="catalog__controls">

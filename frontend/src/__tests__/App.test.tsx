@@ -32,6 +32,7 @@ describe('App — routage global (smoke test)', () => {
     window.localStorage.clear();
     mockedProductsApi.listProducts.mockResolvedValue({ products: [], total: 0, page: 1, pages: 1 });
     mockedProductsApi.listCategories.mockResolvedValue([]);
+    mockedProductsApi.listCategoryTree.mockResolvedValue([]);
     mockedCartApi.getCart.mockResolvedValue({ items: [] });
   });
 

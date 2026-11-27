@@ -232,31 +232,37 @@ const PRODUCTS = [
 
 const CATEGORIES = [
   {
+    group: 'Ordinateurs & composants',
     name: 'Ordinateurs',
     description: 'Portables, tours et stations de travail.',
     subcategories: ['Portables', 'Bureaux', 'Mini PC', 'Stations de travail']
   },
   {
+    group: 'Affichage & périphériques',
     name: 'Écrans',
     description: 'Moniteurs de bureau et dalles professionnelles.',
     subcategories: ['Full HD', '4K', 'Ultra-wide']
   },
   {
+    group: 'Affichage & périphériques',
     name: 'Périphériques',
     description: 'Claviers, souris, audio et accessoires.',
     subcategories: ['Claviers', 'Souris', 'Audio', 'Webcams', 'Accessoires']
   },
   {
+    group: 'Ordinateurs & composants',
     name: 'Composants',
     description: 'Pièces pour monter ou faire évoluer une machine.',
     subcategories: ['Cartes graphiques', 'Stockage', 'Mémoire', 'Processeurs', 'Alimentation']
   },
   {
+    group: 'Réseau & impression',
     name: 'Réseau',
     description: 'Routeurs, maillage et commutation.',
     subcategories: ['Routeurs', 'Maillage', 'Switches']
   },
   {
+    group: 'Réseau & impression',
     name: 'Impression',
     description: 'Imprimantes et scanners.',
     subcategories: ['Imprimantes', 'Scanners']

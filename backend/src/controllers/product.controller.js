@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../middleware/error.js';
 import { logAdminAction } from '../services/audit.service.js';
@@ -24,6 +25,22 @@ export const getProducts = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.category) {
     filter.category = String(req.query.category);
+  }
+  if (req.query.subcategory) {
+    filter.subcategory = String(req.query.subcategory);
+  }
+  // Filtre par catégorie de premier niveau : résolu en liste de familles.
+  if (req.query.group) {
+    const families = await Category.distinct('name', { group: String(req.query.group) });
+    const allowed = new Set(families);
+
+    if (typeof filter.category === 'string') {
+      if (!allowed.has(filter.category)) {
+        filter.category = { $in: [] };
+      }
+    } else {
+      filter.category = { $in: families };
+    }
   }
   if (req.query.search) {
     const escaped = String(req.query.search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

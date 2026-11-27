@@ -3,17 +3,18 @@ import type { FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Panel from '../../components/ui/Panel';
 import Spinner from '../../components/Spinner';
-import { createCategory, getCategory, updateCategory } from '../../api/admin';
+import { createCategory, getCategory, listCategories, updateCategory } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 
 interface CategoryForm {
+  group: string;
   name: string;
   description: string;
   subcategories: string;
 }
 
-const EMPTY_FORM: CategoryForm = { name: '', description: '', subcategories: '' };
+const EMPTY_FORM: CategoryForm = { group: '', name: '', description: '', subcategories: '' };
 
 const parseSubcategories = (value: string) =>
   value
@@ -33,6 +34,7 @@ const AdminCategoryFormPage = () => {
   const { showToast } = useToast();
 
   const [form, setForm] = useState<CategoryForm>(EMPTY_FORM);
+  const [groups, setGroups] = useState<string[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -41,17 +43,21 @@ const AdminCategoryFormPage = () => {
     let cancelled = false;
 
     const load = async () => {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
       try {
-        const category = await getCategory(id);
+        const tree = await listCategories();
         if (cancelled) return;
-        setForm({
-          name: category.name,
-          description: category.description,
-          subcategories: category.subcategories.join(', ')
-        });
+        setGroups([...new Set(tree.map((item) => item.group || '').filter(Boolean))].sort());
+
+        if (id) {
+          const category = await getCategory(id);
+          if (cancelled) return;
+          setForm({
+            group: category.group || '',
+            name: category.name,
+            description: category.description,
+            subcategories: category.subcategories.join(', ')
+          });
+        }
       } catch (err) {
         if (!cancelled) setError(getErrorMessage(err, 'Impossible de charger cette famille.'));
       } finally {
@@ -75,6 +81,7 @@ const AdminCategoryFormPage = () => {
     setSaving(true);
     try {
       const payload = {
+        group: form.group.trim(),
         name: form.name.trim(),
         description: form.description.trim(),
         subcategories: parseSubcategories(form.subcategories)
@@ -138,7 +145,24 @@ const AdminCategoryFormPage = () => {
         <form onSubmit={handleSubmit}>
           <div className="admin-form__grid">
             <label className="field">
-              <span>Nom</span>
+              <span>Catégorie (niveau 1)</span>
+              <input
+                className="input"
+                list="category-groups"
+                value={form.group}
+                onChange={(event) => setForm({ ...form, group: event.target.value })}
+                placeholder="Ordinateurs & composants"
+                maxLength={60}
+              />
+              <datalist id="category-groups">
+                {groups.map((group) => (
+                  <option key={group} value={group} />
+                ))}
+              </datalist>
+            </label>
+
+            <label className="field">
+              <span>Famille (niveau 2)</span>
               <input
                 className="input"
                 value={form.name}

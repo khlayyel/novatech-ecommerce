@@ -5,11 +5,12 @@ import type { Column } from '../../components/ui/DataTable';
 import Panel from '../../components/ui/Panel';
 import Spinner from '../../components/Spinner';
 import * as productsApi from '../../api/products';
-import { deleteProduct, downloadCsv } from '../../api/admin';
+import { deleteProduct, downloadCsv, listCategories } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatPrice } from '../../utils/format';
 import type { Product } from '../../types';
+import type { CategoryInfo } from '../../types';
 
 /**
  * Liste du catalogue : filtres repliables, tableau triable/paginé.
@@ -21,7 +22,11 @@ const AdminProductsPage = () => {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [tree, setTree] = useState<CategoryInfo[]>([]);
   const [search, setSearch] = useState('');
+  const [groupFilter, setGroupFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -31,8 +36,12 @@ const AdminProductsPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await productsApi.listProducts({ limit: 200, sort: 'recent' });
+      const [data, categories] = await Promise.all([
+        productsApi.listProducts({ limit: 200, sort: 'recent' }),
+        listCategories()
+      ]);
       setProducts(data.products);
+      setTree(categories);
     } catch (err) {
       setError(getErrorMessage(err, 'Impossible de charger le catalogue.'));
     } finally {
@@ -44,16 +53,38 @@ const AdminProductsPage = () => {
     load();
   }, [load]);
 
+  const groups = useMemo(
+    () => [...new Set(tree.map((item) => item.group || '').filter(Boolean))].sort(),
+    [tree]
+  );
+
+  const familyOptions = useMemo(() => {
+    if (!groupFilter) return tree;
+    return tree.filter((item) => (item.group || '') === groupFilter);
+  }, [tree, groupFilter]);
+
+  const subcategoryOptions = useMemo(() => {
+    const family = tree.find((item) => item.name === categoryFilter);
+    return family?.subcategories ?? [];
+  }, [tree, categoryFilter]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return products;
-    return products.filter(
-      (product) =>
+    return products.filter((product) => {
+      if (groupFilter) {
+        const family = tree.find((item) => item.name === String(product.category));
+        if ((family?.group || '') !== groupFilter) return false;
+      }
+      if (categoryFilter && String(product.category) !== categoryFilter) return false;
+      if (subcategoryFilter && (product.subcategory || '') !== subcategoryFilter) return false;
+      if (!term) return true;
+      return (
         product.name.toLowerCase().includes(term) ||
         String(product.category).toLowerCase().includes(term) ||
         (product.subcategory || '').toLowerCase().includes(term)
-    );
-  }, [products, search]);
+      );
+    });
+  }, [products, tree, search, groupFilter, categoryFilter, subcategoryFilter]);
 
   const handleDelete = async (product: Product) => {
     const confirmed = window.confirm(`Supprimer définitivement « ${product.name} » du catalogue ?`);
@@ -179,13 +210,64 @@ const AdminProductsPage = () => {
         storageKey="products-filters"
         actions={<span className="muted small">{filtered.length} / {products.length} produit(s)</span>}
       >
-        <div className="filter-grid">
+        <div className="filter-grid filter-grid--two">
+          <label className="field">
+            <span>Catégorie</span>
+            <select
+              className="input input--select"
+              value={groupFilter}
+              onChange={(event) => {
+                setGroupFilter(event.target.value);
+                setCategoryFilter('');
+                setSubcategoryFilter('');
+              }}
+            >
+              <option value="">Toutes les catégories</option>
+              {groups.map((group) => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Famille</span>
+            <select
+              className="input input--select"
+              value={categoryFilter}
+              disabled={familyOptions.length === 0}
+              onChange={(event) => {
+                setCategoryFilter(event.target.value);
+                setSubcategoryFilter('');
+              }}
+            >
+              <option value="">Toutes les familles</option>
+              {familyOptions.map((family) => (
+                <option key={family._id} value={family.name}>{family.name}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Sous-famille</span>
+            <select
+              className="input input--select"
+              value={subcategoryFilter}
+              disabled={!categoryFilter || subcategoryOptions.length === 0}
+              onChange={(event) => setSubcategoryFilter(event.target.value)}
+            >
+              <option value="">Toutes les sous-familles</option>
+              {subcategoryOptions.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </label>
+
           <label className="field">
             <span>Recherche</span>
             <input
               type="search"
               className="input"
-              placeholder="NovaBook, Écrans, Portables…"
+              placeholder="NovaBook, Écrans…"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />

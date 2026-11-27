@@ -7,6 +7,12 @@ import mongoose from 'mongoose';
  */
 const categorySchema = new mongoose.Schema(
   {
+    group: {
+      type: String,
+      trim: true,
+      maxlength: [60, 'La catégorie ne peut pas dépasser 60 caractères'],
+      default: ''
+    },
     name: {
       type: String,
       required: [true, 'Le nom de la catégorie est requis'],
@@ -28,5 +34,8 @@ const categorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Tri et filtrage par catégorie puis famille.
+categorySchema.index({ group: 1, name: 1 });
 
 export default mongoose.model('Category', categorySchema);

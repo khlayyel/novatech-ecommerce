@@ -4,6 +4,8 @@ import app from '../src/app.js';
 import { connectTestDb, clearTestDb, closeTestDb } from './testDb.js';
 import { createCatalog, createProduct } from './helpers.js';
 
+const { default: Category } = await import('../src/models/Category.js');
+
 beforeAll(async () => {
   await connectTestDb();
 });
@@ -55,6 +57,30 @@ describe('GET /api/products', () => {
     res.body.products.forEach((product) => {
       expect(product.category).toBe('Périphériques');
     });
+  });
+
+  it('filtre par sous-famille', async () => {
+    await createProduct({ name: 'Portable A', category: 'Ordinateurs', subcategory: 'Portables' });
+    await createProduct({ name: 'Tour B', category: 'Ordinateurs', subcategory: 'Bureaux' });
+
+    const res = await request(app).get('/api/products?subcategory=Portables');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.total).toBe(1);
+    expect(res.body.products[0].name).toBe('Portable A');
+  });
+
+  it('filtre par catégorie de premier niveau (group)', async () => {
+    await Category.create({ group: 'Matériel', name: 'Ordinateurs' });
+    await Category.create({ group: 'Réseau', name: 'Réseau' });
+    await createProduct({ name: 'PC Group', category: 'Ordinateurs' });
+    await createProduct({ name: 'Switch Group', category: 'Réseau' });
+
+    const res = await request(app).get('/api/products?group=Matériel');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.total).toBe(1);
+    expect(res.body.products[0].name).toBe('PC Group');
   });
 
   it('recherche par nom (insensible à la casse)', async () => {
