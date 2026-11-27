@@ -217,6 +217,7 @@ const AdminUsersPage = () => {
         title="Clients"
         subtitle="Commandes et total dépensé par compte"
         storageKey="users-table"
+        collapsible={false}
         bodyClassName="panel__body--flush"
       >
         <DataTable

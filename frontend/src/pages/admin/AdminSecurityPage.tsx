@@ -173,6 +173,7 @@ const AdminSecurityPage = () => {
         title={`Journal d’audit (${total})`}
         subtitle="Tri par colonne et pagination"
         storageKey="security-audit"
+        collapsible={false}
         bodyClassName="panel__body--flush"
         actions={
           <button type="button" className="button button--ghost button--sm" onClick={load}>

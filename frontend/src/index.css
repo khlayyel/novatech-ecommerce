@@ -2627,6 +2627,10 @@ textarea.input {
   cursor: pointer;
 }
 
+.panel__toggle--static {
+  cursor: default;
+}
+
 .panel__chevron {
   display: grid;
   place-items: center;

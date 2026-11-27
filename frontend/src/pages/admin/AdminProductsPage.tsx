@@ -279,6 +279,7 @@ const AdminProductsPage = () => {
         title="Catalogue"
         subtitle="Tri par colonne, pagination et export"
         storageKey="products-table"
+        collapsible={false}
         bodyClassName="panel__body--flush"
         actions={
           <>

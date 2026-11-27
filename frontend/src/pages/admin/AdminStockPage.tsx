@@ -341,6 +341,7 @@ const AdminStockPage = () => {
         title="Stocks"
         subtitle="Modifiez la quantité puis « Enregistrer »"
         storageKey="stock-table"
+        collapsible={false}
         bodyClassName="panel__body--flush"
       >
         <DataTable

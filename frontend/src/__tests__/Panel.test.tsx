@@ -36,4 +36,16 @@ describe('Panel', () => {
     expect(screen.queryByText('Lignes')).not.toBeInTheDocument();
     expect(screen.getByText('Action')).toBeInTheDocument();
   });
+
+  it('reste toujours ouvert quand collapsible est désactivé', () => {
+    render(
+      <Panel title="Tableau" collapsible={false} actions={<span>Action</span>}>
+        <p>Lignes du tableau</p>
+      </Panel>
+    );
+
+    expect(screen.getByText('Lignes du tableau')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Tableau/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Action')).toBeInTheDocument();
+  });
 });

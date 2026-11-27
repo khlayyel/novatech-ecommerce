@@ -204,6 +204,7 @@ const AdminCategoriesPage = () => {
         title="Familles et sous-familles"
         subtitle="Renommer une famille met à jour les produits associés"
         storageKey="categories-table"
+        collapsible={false}
         bodyClassName="panel__body--flush"
         actions={
           <button

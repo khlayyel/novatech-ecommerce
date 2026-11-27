@@ -248,6 +248,7 @@ const AdminDashboardPage = () => {
           title="Valeur du stock par famille"
           subtitle="Prix de vente × unités disponibles"
           storageKey="dashboard-stock"
+          collapsible={false}
           bodyClassName="panel__body--flush"
         >
           <DataTable
@@ -263,6 +264,7 @@ const AdminDashboardPage = () => {
         title="Dernières commandes"
         subtitle="Cinq commandes les plus récentes"
         storageKey="dashboard-orders"
+        collapsible={false}
         bodyClassName="panel__body--flush"
         actions={
           <Link to="/admin/orders" className="button button--ghost button--sm">

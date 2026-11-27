@@ -8,6 +8,8 @@ interface PanelProps {
   defaultOpen?: boolean;
   /** Mémorise l'état ouvert/fermé dans le navigateur. */
   storageKey?: string;
+  /** Un tableau ne se replie pas : en-tête statique, contenu toujours visible. */
+  collapsible?: boolean;
   className?: string;
   bodyClassName?: string;
   children: ReactNode;
@@ -35,12 +37,13 @@ const Panel = ({
   actions,
   defaultOpen = true,
   storageKey,
+  collapsible = true,
   className = '',
   bodyClassName = '',
   children
 }: PanelProps) => {
-  const storage = storageKey ? `novatech.panel.${storageKey}` : null;
-  const [open, setOpen] = useState(() => readStored(storage) ?? defaultOpen);
+  const storage = collapsible && storageKey ? `novatech.panel.${storageKey}` : null;
+  const [open, setOpen] = useState(() => (collapsible ? readStored(storage) ?? defaultOpen : true));
 
   const toggle = () => {
     setOpen((current) => {
@@ -57,24 +60,33 @@ const Panel = ({
   };
 
   return (
-    <section className={`card panel${open ? '' : ' panel--closed'}${className ? ` ${className}` : ''}`}>
+    <section className={`card panel${collapsible && !open ? ' panel--closed' : ''}${className ? ` ${className}` : ''}`}>
       <div className="panel__head">
-        <button type="button" className="panel__toggle" onClick={toggle} aria-expanded={open}>
-          <span className={`panel__chevron${open ? ' panel__chevron--open' : ''}`} aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </span>
-          <span className="panel__titles">
-            <strong>{title}</strong>
-            {subtitle && <small>{subtitle}</small>}
-          </span>
-        </button>
+        {collapsible ? (
+          <button type="button" className="panel__toggle" onClick={toggle} aria-expanded={open}>
+            <span className={`panel__chevron${open ? ' panel__chevron--open' : ''}`} aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </span>
+            <span className="panel__titles">
+              <strong>{title}</strong>
+              {subtitle && <small>{subtitle}</small>}
+            </span>
+          </button>
+        ) : (
+          <div className="panel__toggle panel__toggle--static">
+            <span className="panel__titles">
+              <strong>{title}</strong>
+              {subtitle && <small>{subtitle}</small>}
+            </span>
+          </div>
+        )}
 
         {actions && <div className="panel__actions">{actions}</div>}
       </div>
 
-      {open && <div className={`panel__body${bodyClassName ? ` ${bodyClassName}` : ''}`}>{children}</div>}
+      {(open || !collapsible) && <div className={`panel__body${bodyClassName ? ` ${bodyClassName}` : ''}`}>{children}</div>}
     </section>
   );
 };

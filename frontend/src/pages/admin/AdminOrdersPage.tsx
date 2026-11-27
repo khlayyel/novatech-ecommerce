@@ -266,6 +266,7 @@ const AdminOrdersPage = () => {
         title="Commandes"
         subtitle="Cliquez sur un en-tête pour trier, « Voir » pour le détail"
         storageKey="orders-table"
+        collapsible={false}
         bodyClassName="panel__body--flush"
       >
         <DataTable
