@@ -7,6 +7,8 @@ import { createProduct, loginAdmin, registerUser } from './helpers.js';
 const { default: Product } = await import('../src/models/Product.js');
 const { default: Order } = await import('../src/models/Order.js');
 const { default: User } = await import('../src/models/User.js');
+const { default: Category } = await import('../src/models/Category.js');
+const { default: AuditLog } = await import('../src/models/AuditLog.js');
 
 const bearer = (token) => ({ Authorization: `Bearer ${token}` });
 
@@ -256,5 +258,169 @@ describe('Gestion des commandes (admin)', () => {
       .send({ status: 'teleported' });
 
     expect(res.statusCode).toBe(400);
+  });
+});
+
+describe('Analytics, utilisateurs et journal d\'audit', () => {
+  it('agrège les indicateurs analytiques', async () => {
+    const product = await createProduct({ price: 100 });
+    await Order.create({ ...orderPayload({ productId: product._id }), status: 'paid', totalAmount: 200 });
+    await Order.create({ ...orderPayload({ productId: product._id }), status: 'pending', totalAmount: 50 });
+
+    const admin = await loginAdmin(app);
+    const res = await request(app).get('/api/admin/analytics?days=7').set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.series).toHaveLength(7);
+    expect(res.body.totals.revenue).toBe(200);
+    expect(res.body.totals.orders).toBe(1);
+    expect(res.body.statusBreakdown.pending).toBe(1);
+    expect(res.body.topProducts[0].name).toBe('Produit commandé');
+    expect(res.body.categories[0].category).toBe('Périphériques');
+  });
+
+  it('liste les utilisateurs avec leurs statistiques d\'achat', async () => {
+    const customer = await registerUser(app);
+    const admin = await loginAdmin(app);
+
+    const product = await createProduct();
+    await Order.create({
+      ...orderPayload({ productId: product._id }),
+      user: customer.body.user.id,
+      totalAmount: 480
+    });
+
+    const res = await request(app).get('/api/admin/users').set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.total).toBe(2);
+    const row = res.body.users.find((user) => user.email === customer.body.user.email);
+    expect(row.role).toBe('customer');
+    expect(row.orders).toBe(1);
+    expect(row.spent).toBe(480);
+  });
+
+  it('promeut un client en administrateur, puis le rétrograde', async () => {
+    const customer = await registerUser(app);
+    const admin = await loginAdmin(app);
+
+    const promote = await request(app)
+      .patch(`/api/admin/users/${customer.body.user.id}/role`)
+      .set(bearer(admin.body.token))
+      .send({ role: 'admin' });
+
+    expect(promote.statusCode).toBe(200);
+    expect(promote.body.role).toBe('admin');
+
+    const demote = await request(app)
+      .patch(`/api/admin/users/${customer.body.user.id}/role`)
+      .set(bearer(admin.body.token))
+      .send({ role: 'customer' });
+
+    expect(demote.statusCode).toBe(200);
+    expect(demote.body.role).toBe('customer');
+  });
+
+  it('interdit de retirer son propre rôle admin (409)', async () => {
+    const admin = await loginAdmin(app);
+
+    const res = await request(app)
+      .patch(`/api/admin/users/${admin.body.user.id}/role`)
+      .set(bearer(admin.body.token))
+      .send({ role: 'customer' });
+
+    expect(res.statusCode).toBe(409);
+  });
+
+  it('journalise les actions d\'administration', async () => {
+    const admin = await loginAdmin(app);
+
+    await request(app)
+      .post('/api/admin/products')
+      .set(bearer(admin.body.token))
+      .send({ name: 'Trace Test', description: 'Produit journalisé.', price: 10, category: 'Composants' });
+
+    const res = await request(app).get('/api/admin/audit').set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.total).toBeGreaterThan(0);
+    expect(res.body.logs[0].action).toBe('product.create');
+    expect(res.body.logs[0].actorEmail).toBe(admin.body.user.email);
+    expect(await AuditLog.countDocuments()).toBe(1);
+  });
+});
+
+describe('Catégories et sous-catégories (admin)', () => {
+  it('expose l\'arbre public des catégories', async () => {
+    await Category.create({ name: 'Ordinateurs', subcategories: ['Portables'] });
+
+    const res = await request(app).get('/api/categories');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body[0].name).toBe('Ordinateurs');
+    expect(res.body[0].subcategories).toEqual(['Portables']);
+  });
+
+  it('crée une famille avec ses sous-familles', async () => {
+    const admin = await loginAdmin(app);
+    const res = await request(app)
+      .post('/api/admin/categories')
+      .set(bearer(admin.body.token))
+      .send({ name: 'Écrans', description: 'Moniteurs', subcategories: ['4K', '4K', ' Ultra-wide '] });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.subcategories).toEqual(['4K', 'Ultra-wide']);
+  });
+
+  it('renomme une famille et met à jour les produits', async () => {
+    const category = await Category.create({ name: 'Réseau', subcategories: ['Routeurs'] });
+    const product = await createProduct({ category: 'Réseau' });
+    const admin = await loginAdmin(app);
+
+    const res = await request(app)
+      .put(`/api/admin/categories/${category._id}`)
+      .set(bearer(admin.body.token))
+      .send({ name: 'Réseau & WiFi' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.name).toBe('Réseau & WiFi');
+    expect(res.body.subcategories).toEqual(['Routeurs']);
+
+    const updated = await Product.findById(product._id);
+    expect(updated.category).toBe('Réseau & WiFi');
+  });
+
+  it('refuse la suppression d\'une famille utilisée (409)', async () => {
+    const category = await Category.create({ name: 'Impression' });
+    await createProduct({ category: 'Impression' });
+    const admin = await loginAdmin(app);
+
+    const res = await request(app)
+      .delete(`/api/admin/categories/${category._id}`)
+      .set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(409);
+  });
+
+  it('supprime une famille inutilisée', async () => {
+    const category = await Category.create({ name: 'Inutilisée' });
+    const admin = await loginAdmin(app);
+
+    const res = await request(app)
+      .delete(`/api/admin/categories/${category._id}`)
+      .set(bearer(admin.body.token));
+
+    expect(res.statusCode).toBe(200);
+    expect(await Category.countDocuments()).toBe(0);
+  });
+
+  it('refuse les opérations à un client (403)', async () => {
+    const customer = await registerUser(app);
+    const res = await request(app)
+      .post('/api/admin/categories')
+      .set(bearer(customer.body.token))
+      .send({ name: 'Interdit' });
+
+    expect(res.statusCode).toBe(403);
   });
 });

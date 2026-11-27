@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../middleware/error.js';
+import { logAdminAction } from '../services/audit.service.js';
 
 const MAX_LIMIT = 48;
 
@@ -43,7 +44,7 @@ export const getProducts = asyncHandler(async (req, res) => {
 });
 
 /** Champs modifiables par un administrateur (liste blanche anti-mass-assignment). */
-const PRODUCT_FIELDS = ['name', 'description', 'price', 'category', 'stock', 'imageUrl'];
+const PRODUCT_FIELDS = ['name', 'description', 'price', 'category', 'subcategory', 'stock', 'imageUrl'];
 
 const pickProductFields = (body = {}) => {
   const data = {};
@@ -94,6 +95,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   }
 
   const product = await Product.create(data);
+  await logAdminAction(req, 'product.create', product.name, { price: product.price, stock: product.stock });
   res.status(201).json(product);
 });
 
@@ -116,6 +118,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Produit introuvable');
   }
 
+  await logAdminAction(req, 'product.update', product.name, data);
   res.json(product);
 });
 
@@ -129,5 +132,6 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Produit introuvable');
   }
 
+  await logAdminAction(req, 'product.delete', product.name);
   res.json({ deleted: true, id });
 });

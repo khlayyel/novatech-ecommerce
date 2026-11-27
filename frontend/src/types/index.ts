@@ -14,6 +14,7 @@ export interface Product {
   description: string;
   price: number;
   category: Category | string;
+  subcategory?: string;
   stock: number;
   imageUrl: string;
   createdAt: string;
@@ -87,8 +88,24 @@ export interface ProductInput {
   description: string;
   price: number;
   category: Category | string;
+  subcategory?: string;
   stock: number;
   imageUrl?: string;
+}
+
+export interface CategoryInfo {
+  _id: string;
+  name: string;
+  description: string;
+  subcategories: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CategoryInput {
+  name: string;
+  description?: string;
+  subcategories?: string[];
 }
 
 export interface AdminOrderCustomer {
@@ -123,4 +140,54 @@ export interface AdminStats {
   products: { total: number; lowStock: number };
   users: number;
   recentOrders: AdminOrder[];
+}
+
+export interface AdminUserRow {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+  orders: number;
+  spent: number;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUserRow[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export interface AnalyticsSeriesPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface AdminAnalytics {
+  days: number;
+  series: AnalyticsSeriesPoint[];
+  statusBreakdown: Record<string, number>;
+  topProducts: { name: string; quantity: number; revenue: number }[];
+  categories: { category: string; products: number; stock: number; value: number }[];
+  totals: { revenue: number; orders: number; averageBasket: number };
+}
+
+export interface AuditLogEntry {
+  _id: string;
+  actor?: string;
+  actorEmail: string;
+  action: string;
+  target: string;
+  meta?: unknown;
+  ip: string;
+  createdAt: string;
+}
+
+export interface AuditLogsResponse {
+  logs: AuditLogEntry[];
+  total: number;
+  page: number;
+  pages: number;
 }

@@ -26,7 +26,14 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'La catégorie est requise'],
-      enum: ['Ordinateurs', 'Écrans', 'Périphériques', 'Composants', 'Réseau', 'Impression']
+      trim: true,
+      maxlength: [60, 'La catégorie ne peut pas dépasser 60 caractères']
+    },
+    subcategory: {
+      type: String,
+      trim: true,
+      maxlength: [60, 'La sous-catégorie ne peut pas dépasser 60 caractères'],
+      default: ''
     },
     stock: {
       type: Number,
@@ -44,6 +51,6 @@ const productSchema = new mongoose.Schema(
 );
 
 // Index pour le filtrage par catégorie et le tri par nouveauté.
-productSchema.index({ category: 1, createdAt: -1 });
+productSchema.index({ category: 1, subcategory: 1, createdAt: -1 });
 
 export default mongoose.model('Product', productSchema);

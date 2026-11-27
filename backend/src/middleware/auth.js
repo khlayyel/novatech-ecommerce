@@ -64,7 +64,7 @@ export const requireAdmin = (req, res, next) => {
   requireAuth(req, res, async (err) => {
     if (err) return next(err);
     try {
-      const user = await User.findById(req.user.id).select('role');
+      const user = await User.findById(req.user.id).select('role email');
       if (!user) {
         return next(new ApiError(401, 'Utilisateur introuvable'));
       }
@@ -72,6 +72,7 @@ export const requireAdmin = (req, res, next) => {
         return next(new ApiError(403, 'Accès réservé aux administrateurs'));
       }
       req.user.role = user.role;
+      req.user.email = user.email;
       return next();
     } catch (error) {
       return next(error);

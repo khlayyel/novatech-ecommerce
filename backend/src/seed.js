@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { assertServerEnv } from './config/env.js';
 import { connectDatabase } from './config/db.js';
 import Product from './models/Product.js';
+import Category from './models/Category.js';
 import User from './models/User.js';
 
 /**
@@ -229,6 +230,67 @@ const PRODUCTS = [
   }
 ];
 
+const CATEGORIES = [
+  {
+    name: 'Ordinateurs',
+    description: 'Portables, tours et stations de travail.',
+    subcategories: ['Portables', 'Bureaux', 'Mini PC', 'Stations de travail']
+  },
+  {
+    name: 'Écrans',
+    description: 'Moniteurs de bureau et dalles professionnelles.',
+    subcategories: ['Full HD', '4K', 'Ultra-wide']
+  },
+  {
+    name: 'Périphériques',
+    description: 'Claviers, souris, audio et accessoires.',
+    subcategories: ['Claviers', 'Souris', 'Audio', 'Webcams', 'Accessoires']
+  },
+  {
+    name: 'Composants',
+    description: 'Pièces pour monter ou faire évoluer une machine.',
+    subcategories: ['Cartes graphiques', 'Stockage', 'Mémoire', 'Processeurs', 'Alimentation']
+  },
+  {
+    name: 'Réseau',
+    description: 'Routeurs, maillage et commutation.',
+    subcategories: ['Routeurs', 'Maillage', 'Switches']
+  },
+  {
+    name: 'Impression',
+    description: 'Imprimantes et scanners.',
+    subcategories: ['Imprimantes', 'Scanners']
+  }
+];
+
+/** Sous-famille associée à chaque produit de démonstration. */
+const SUBCATEGORIES = {
+  'NovaBook Pro 14': 'Portables',
+  'NovaBook Air 13': 'Portables',
+  'NovaBook Studio 16': 'Portables',
+  'Titan X — PC Gamer': 'Bureaux',
+  'Titan Mini — Mini PC': 'Mini PC',
+  'ClearView 27" 4K': '4K',
+  'ClearView UltraWide 34"': 'Ultra-wide',
+  'ClearView 24" FHD': 'Full HD',
+  'NovaKey TKL — Clavier mécanique': 'Claviers',
+  'NovaGlide Pro — Souris': 'Souris',
+  'NovaSound 7.1 — Casque': 'Audio',
+  'NovaCam 4K — Webcam': 'Webcams',
+  'NovaPad XL — Tapis de bureau': 'Accessoires',
+  'NovaDock USB-C — Station d\'accueil': 'Accessoires',
+  'GraphiCore RTX 5080': 'Cartes graphiques',
+  'NovaDrive SSD NVMe 1 To': 'Stockage',
+  'NovaRAM 32 Go DDR5': 'Mémoire',
+  'NovaCore i9 — Processeur': 'Processeurs',
+  'NovaPower 850W — Alimentation': 'Alimentation',
+  'NovaLink WiFi 6 — Routeur': 'Routeurs',
+  'NovaMesh Pro — Pack 2': 'Maillage',
+  'NovaSwitch 8 ports — Gigabit': 'Switches',
+  'NovaPrint Laser': 'Imprimantes',
+  'NovaScan — Scanner à plat': 'Scanners'
+};
+
 const DEMO_USER = {
   name: "Utilisateur Démo",
   email: "demo@novatech.fr",
@@ -249,8 +311,24 @@ const seed = async () => {
     await connectDatabase();
 
     await Product.deleteMany({});
-    const products = await Product.insertMany(PRODUCTS);
+    const products = await Product.insertMany(
+      PRODUCTS.map((product) => ({
+        ...product,
+        subcategory: SUBCATEGORIES[product.name] || ''
+      }))
+    );
     console.log(`✓ ${products.length} produits insérés.`);
+
+    await Category.bulkWrite(
+      CATEGORIES.map((category) => ({
+        updateOne: {
+          filter: { name: category.name },
+          update: { $set: category },
+          upsert: true
+        }
+      }))
+    );
+    console.log(`✓ ${CATEGORIES.length} catégories synchronisées.`);
 
     const existingUser = await User.findOne({ email: DEMO_USER.email });
     if (!existingUser) {

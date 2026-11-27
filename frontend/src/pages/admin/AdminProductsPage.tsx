@@ -1,21 +1,27 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import EmptyState from '../../components/EmptyState';
 import Spinner from '../../components/Spinner';
 import * as productsApi from '../../api/products';
-import { createProduct, deleteProduct, updateProduct } from '../../api/admin';
+import {
+  createProduct,
+  deleteProduct,
+  listCategories,
+  updateProduct
+} from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatPrice } from '../../utils/format';
-import type { Category, Product } from '../../types';
+import type { CategoryInfo, Product } from '../../types';
 
-const CATEGORIES: Category[] = ['Ordinateurs', 'Écrans', 'Périphériques', 'Composants', 'Réseau', 'Impression'];
+const FALLBACK_CATEGORIES = ['Ordinateurs', 'Écrans', 'Périphériques', 'Composants', 'Réseau', 'Impression'];
 
 interface ProductForm {
   name: string;
   description: string;
   price: string;
   category: string;
+  subcategory: string;
   stock: string;
   imageUrl: string;
 }
@@ -24,16 +30,19 @@ const EMPTY_FORM: ProductForm = {
   name: '',
   description: '',
   price: '',
-  category: 'Ordinateurs',
+  category: FALLBACK_CATEGORIES[0],
+  subcategory: '',
   stock: '',
   imageUrl: ''
 };
 
-/** Gestion du catalogue : création, modification et suppression de produits. */
+/** Gestion du catalogue : recherche, création, modification et suppression. */
 const AdminProductsPage = () => {
   const { showToast } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -46,8 +55,12 @@ const AdminProductsPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await productsApi.listProducts({ limit: 48, sort: 'recent' });
-      setProducts(data.products);
+      const [catalog, tree] = await Promise.all([
+        productsApi.listProducts({ limit: 48, sort: 'recent' }),
+        listCategories()
+      ]);
+      setProducts(catalog.products);
+      setCategories(tree);
     } catch (err) {
       setError(getErrorMessage(err, 'Impossible de charger le catalogue.'));
     } finally {
@@ -59,9 +72,27 @@ const AdminProductsPage = () => {
     load();
   }, [load]);
 
+  const categoryNames = categories.length > 0 ? categories.map((item) => item.name) : FALLBACK_CATEGORIES;
+
+  const subcategoryOptions = useMemo(() => {
+    const current = categories.find((item) => item.name === form.category);
+    return current?.subcategories ?? [];
+  }, [categories, form.category]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return products;
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(term) ||
+        String(product.category).toLowerCase().includes(term) ||
+        (product.subcategory || '').toLowerCase().includes(term)
+    );
+  }, [products, search]);
+
   const openCreate = () => {
     setEditing(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, category: categoryNames[0] });
     setFormOpen(true);
   };
 
@@ -72,6 +103,7 @@ const AdminProductsPage = () => {
       description: product.description,
       price: String(product.price),
       category: String(product.category),
+      subcategory: product.subcategory || '',
       stock: String(product.stock),
       imageUrl: product.imageUrl
     });
@@ -109,6 +141,7 @@ const AdminProductsPage = () => {
         description: form.description.trim(),
         price,
         category: form.category,
+        subcategory: form.subcategory,
         stock,
         imageUrl: form.imageUrl.trim()
       };
@@ -156,22 +189,39 @@ const AdminProductsPage = () => {
   }
 
   if (error) {
-    return <EmptyState title="Catalogue indisponible" message={error} icon="⚠️" action={
-      <button type="button" className="button button--primary" onClick={load}>
-        Réessayer
-      </button>
-    } />;
+    return (
+      <EmptyState
+        title="Catalogue indisponible"
+        message={error}
+        icon="⚠️"
+        action={
+          <button type="button" className="button button--primary" onClick={load}>
+            Réessayer
+          </button>
+        }
+      />
+    );
   }
 
   return (
     <div className="admin-panel">
       <div className="admin-toolbar">
-        <p className="muted">
-          {products.length} produit{products.length > 1 ? 's' : ''} au catalogue.
-        </p>
-        <button type="button" className="button button--primary" onClick={openCreate}>
-          + Nouveau produit
-        </button>
+        <input
+          type="search"
+          className="input"
+          placeholder="Rechercher un produit, une famille…"
+          aria-label="Rechercher un produit"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        <div className="admin-toolbar__actions">
+          <span className="muted small">
+            {filtered.length} / {products.length} produit(s)
+          </span>
+          <button type="button" className="button button--primary" onClick={openCreate}>
+            + Nouveau produit
+          </button>
+        </div>
       </div>
 
       {formOpen && (
@@ -196,14 +246,28 @@ const AdminProductsPage = () => {
             </label>
 
             <label className="field">
-              <span>Catégorie</span>
+              <span>Famille</span>
               <select
                 className="input input--select"
                 value={form.category}
-                onChange={(event) => setForm({ ...form, category: event.target.value })}
+                onChange={(event) => setForm({ ...form, category: event.target.value, subcategory: '' })}
               >
-                {CATEGORIES.map((category) => (
-                  <option key={category} value={category}>{category}</option>
+                {categoryNames.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Sous-famille</span>
+              <select
+                className="input input--select"
+                value={form.subcategory}
+                onChange={(event) => setForm({ ...form, subcategory: event.target.value })}
+              >
+                <option value="">— Aucune —</option>
+                {subcategoryOptions.map((name) => (
+                  <option key={name} value={name}>{name}</option>
                 ))}
               </select>
             </label>
@@ -270,19 +334,22 @@ const AdminProductsPage = () => {
           <thead>
             <tr>
               <th>Produit</th>
-              <th>Catégorie</th>
+              <th>Famille</th>
               <th>Prix</th>
               <th>Stock</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {filtered.map((product) => (
               <tr key={product._id}>
                 <td>
                   <div className="admin-product__cell">
                     <img src={product.imageUrl} alt="" />
-                    <span>{product.name}</span>
+                    <span>
+                      {product.name}
+                      {product.subcategory && <small className="muted block">{product.subcategory}</small>}
+                    </span>
                   </div>
                 </td>
                 <td>{product.category}</td>
