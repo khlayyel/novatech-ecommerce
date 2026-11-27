@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import Logo from '../../components/Logo';
 import AdminIcon from '../../components/admin/AdminIcon';
 import type { AdminIconName } from '../../components/admin/AdminIcon';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import LocaleSwitcher from '../../components/ui/LocaleSwitcher';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../i18n';
@@ -145,10 +146,7 @@ const AdminPage = () => {
             <AdminIcon name={sidebarOpen ? 'close' : 'menu'} size={20} />
           </button>
 
-          <div className="admin-topbar__title">
-            <span className="admin-topbar__eyebrow">{t('admin.eyebrow')}</span>
-            <h1>{title}</h1>
-          </div>
+          <span className="admin-topbar__brand">{t('admin.eyebrow')}</span>
 
           <div className="admin-topbar__user">
             <LocaleSwitcher />
@@ -161,6 +159,7 @@ const AdminPage = () => {
         </header>
 
         <main className="admin-content">
+          <AdminPageHeader title={title} />
           <Outlet />
         </main>
 
