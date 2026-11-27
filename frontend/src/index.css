@@ -2814,3 +2814,69 @@ textarea.input {
 .panel + .panel {
   margin-top: 0;
 }
+
+/* ── 20. Barre latérale repliable (rail d'icônes) ──────────────── */
+
+.admin-topbar__collapse {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.admin-topbar__collapse:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+@media (min-width: 1025px) {
+  .admin-topbar__collapse {
+    display: inline-flex;
+  }
+
+  .admin-shell--collapsed {
+    grid-template-columns: 78px minmax(0, 1fr);
+  }
+
+  .admin-shell--collapsed .admin-sidebar {
+    padding: 1.1rem 0.5rem;
+  }
+
+  .admin-shell--collapsed .admin-sidebar__brand {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .admin-shell--collapsed .admin-sidebar__tag,
+  .admin-shell--collapsed .admin-nav-link > span {
+    display: none;
+  }
+
+  .admin-shell--collapsed .admin-sidebar__nav {
+    gap: 0.3rem;
+  }
+
+  .admin-shell--collapsed .admin-nav-link {
+    justify-content: center;
+    padding: 0.62rem 0;
+  }
+
+  .admin-shell--collapsed .admin-nav-link .admin-icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  .admin-shell--collapsed .admin-sidebar__foot {
+    gap: 0.3rem;
+  }
+}

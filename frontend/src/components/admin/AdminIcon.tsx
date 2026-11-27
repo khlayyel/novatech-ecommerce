@@ -11,7 +11,9 @@ export type AdminIconName =
   | 'store'
   | 'logout'
   | 'menu'
-  | 'close';
+  | 'close'
+  | 'collapse'
+  | 'expand';
 
 const ICONS: Record<AdminIconName, ReactNode> = {
   dashboard: (
@@ -74,7 +76,21 @@ const ICONS: Record<AdminIconName, ReactNode> = {
     </>
   ),
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
-  close: <path d="M6 6l12 12M18 6L6 18" />
+  close: <path d="M6 6l12 12M18 6L6 18" />,
+  collapse: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16" />
+      <path d="M16 9l-3 3 3 3" />
+    </>
+  ),
+  expand: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16" />
+      <path d="M13 9l3 3-3 3" />
+    </>
+  )
 };
 
 const AdminIcon = ({ name, size = 18 }: { name: AdminIconName; size?: number }) => (

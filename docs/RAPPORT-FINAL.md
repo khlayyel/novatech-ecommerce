@@ -29,7 +29,7 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 | 5 | Tests backend Jest + Supertest, dépendances mockées | ✅ | 6 suites, **84 tests**, MongoDB en mémoire |
 | 6 | Frontend React + TypeScript, Axios, routage | ✅ | `frontend/src/`, `api/request.ts`, React Router 7 |
 | 7 | Composants clés : catalogue, panier, Stripe Elements, confirmation | ✅ | `pages/`, `components/CheckoutForm.tsx` |
-| 8 | Tests frontend Jest + Testing Library | ✅ | 13 suites, **50 tests** |
+| 8 | Tests frontend Jest + Testing Library | ✅ | 13 suites, **51 tests** |
 | 9 | Automatisation, Docker, GitHub Actions | ✅ | `Dockerfile.*`, `docker-compose.yml`, `.github/workflows/ci.yml` + `deploy.yml` |
 | 10 | Déploiement effectif (Render + Vercel + Atlas + Stripe) | ✅ | https://novatech-ecommerce.vercel.app · https://novatech-api-7qa9.onrender.com |
 | 11 | Bonus : stock, suivi, JWT | ✅ | `order.service.js`, `OrderDetailPage.tsx`, `middleware/auth.js` |
@@ -66,7 +66,7 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 | Contrôle | Commande | Résultat |
 |---|---|---|
 | Tests backend | `npm test --prefix backend` | **84 / 84** |
-| Tests frontend | `npm test --prefix frontend` | **50 / 50** |
+| Tests frontend | `npm test --prefix frontend` | **51 / 51** |
 | Lint backend | `npm run lint --prefix backend` | 0 erreur |
 | Lint frontend | `npm run lint --prefix frontend` | 0 erreur |
 | Typecheck + build | `npm run build` | ✅ (≈ 131 kB gzip) |

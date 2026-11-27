@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AdminPage from '../pages/admin/AdminPage';
 
@@ -9,6 +10,7 @@ jest.mock('../context/AuthContext', () => ({
 }));
 
 beforeEach(() => {
+  window.localStorage.clear();
   mockUseAuth.mockReturnValue({
     user: { id: 'a1', name: 'Admin', email: 'admin@novatech.fr', role: 'admin' },
     logout: jest.fn()
@@ -44,5 +46,23 @@ describe('Coquille d\'administration', () => {
 
     expect(screen.getAllByText('Admin').length).toBeGreaterThan(0);
     expect(screen.getByText('admin@novatech.fr')).toBeInTheDocument();
+  });
+
+  it('replie la barre latérale en rail d\'icônes et mémorise l\'état', async () => {
+    const { container } = renderShell();
+    const shell = container.querySelector('.admin-shell');
+
+    expect(shell).not.toHaveClass('admin-shell--collapsed');
+
+    await userEvent.click(screen.getByRole('button', { name: /Replier le menu/i }));
+
+    expect(shell).toHaveClass('admin-shell--collapsed');
+    expect(screen.getByRole('button', { name: /Déplier le menu/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(window.localStorage.getItem('novatech.admin.sidebar-collapsed')).toBe('1');
+
+    await userEvent.click(screen.getByRole('button', { name: /Déplier le menu/i }));
+
+    expect(shell).not.toHaveClass('admin-shell--collapsed');
+    expect(window.localStorage.getItem('novatech.admin.sidebar-collapsed')).toBe('0');
   });
 });

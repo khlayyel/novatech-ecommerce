@@ -163,7 +163,7 @@ Un rôle `admin` ouvre `/admin`, protégé côté client **et** côté serveur :
 
 Les écrans **Produits**, **Commandes** et **Clients** proposent un **export CSV** (séparateur `;`, BOM UTF-8) directement ouvrable dans Excel.
 
-**Standard d'interface** : chaque page de l'admin est composée de **panneaux repliables** (`Panel` : filtres, tableau, formulaire) dont l'état est mémorisé par le navigateur. Tous les tableaux utilisent le même composant `DataTable` : tri par clic sur n'importe quel en-tête de colonne, pagination **10 lignes par défaut** avec choix 5 / 10 / 15 / 20 / 50 (choix mémorisé par tableau) et compteur « X–Y sur N ».
+**Standard d'interface** : chaque page de l'admin est composée de **panneaux repliables** (`Panel` : filtres, tableau, formulaire) dont l'état est mémorisé par le navigateur. La **barre latérale se replie** en rail d'icônes via le bouton de la topbar (état mémorisé ; tiroir sur mobile). Tous les tableaux utilisent le même composant `DataTable` : tri par clic sur n'importe quel en-tête de colonne, pagination **10 lignes par défaut** avec choix 5 / 10 / 15 / 20 / 50 (choix mémorisé par tableau) et compteur « X–Y sur N ».
 
 Le rôle n'est pas embarqué dans le JWT : `requireAdmin` le relit en base à chaque requête, ce qui permet une révocation immédiate. Un client authentifié reçoit `403` sur `/api/admin/*`.
 
