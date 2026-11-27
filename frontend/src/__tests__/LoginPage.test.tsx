@@ -60,6 +60,23 @@ describe('LoginPage', () => {
     expect(window.localStorage.getItem('novatech_token')).toBe('jwt-test-123');
   });
 
+  it('redirige un administrateur vers l\'espace d\'administration', async () => {
+    mockedAuthApi.login.mockResolvedValue({
+      token: 'jwt-admin-123',
+      user: { id: 'a1', name: 'Admin', email: 'admin@novatech.fr', role: 'admin' }
+    });
+
+    renderPage();
+
+    await userEvent.type(screen.getByLabelText(/Email/i), 'admin@novatech.fr');
+    await userEvent.type(screen.getByLabelText(/Mot de passe/i), 'Admin1234!');
+    await userEvent.click(screen.getByRole('button', { name: /Se connecter/i }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/admin', { replace: true });
+    });
+  });
+
   it('affiche l\'erreur d\'identifiants renvoyée par l\'API', async () => {
     mockedAuthApi.login.mockRejectedValue(new Error('Identifiants incorrects'));
 

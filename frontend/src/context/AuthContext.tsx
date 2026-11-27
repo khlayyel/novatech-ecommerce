@@ -14,7 +14,7 @@ interface AuthContextValue {
   user: User | null;
   token: string | null;
   initializing: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -62,6 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(data.token);
       setTokenState(data.token);
       setUser(data.user);
+      return data.user;
     } catch (error) {
       throw new Error(getErrorMessage(error, 'Connexion impossible, veuillez réessayer.'), { cause: error });
     }

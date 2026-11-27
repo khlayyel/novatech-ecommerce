@@ -28,8 +28,9 @@ const LoginPage = () => {
 
     setSubmitting(true);
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      const user = await login(email, password);
+      // Un administrateur arrive directement sur son back-office.
+      navigate(user.role === 'admin' ? '/admin' : from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connexion impossible.');
     } finally {

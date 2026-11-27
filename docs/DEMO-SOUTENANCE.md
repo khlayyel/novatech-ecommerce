@@ -58,7 +58,7 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 
 ## 7. Qualité & DevOps (échange, ≈ 1 min)
 
-- `npm test` : montrer les 6 suites backend (84 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 11 suites frontend (42 tests, RTL).
+- `npm test` : montrer les 6 suites backend (84 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 11 suites frontend (43 tests, RTL).
 - `npm run smoke` : montrer le tableau de 55 vérifications dont le **paiement réel** et le **webhook signé**.
 - CI GitHub Actions : lint + tests + build à chaque push ; déploiement Render/Vercel sur `main` via secrets.
 - Docker : `docker compose up --build` → stack complète mongo/api/web.
