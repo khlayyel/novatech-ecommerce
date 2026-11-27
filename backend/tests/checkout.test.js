@@ -21,6 +21,7 @@ jest.unstable_mockModule('../src/services/stripe.service.js', () => ({
 const { default: app } = await import('../src/app.js');
 const { default: Order } = await import('../src/models/Order.js');
 const { default: Product } = await import('../src/models/Product.js');
+const { markOrderPaid } = await import('../src/services/order.service.js');
 
 beforeAll(async () => {
   await connectTestDb();
@@ -194,6 +195,40 @@ describe('POST /api/orders/:id/confirm', () => {
 
     const updatedProduct = await Product.findById(product._id);
     expect(updatedProduct.stock).toBe(8); // 10 - 2, pas 10 - 4
+  });
+
+  it('renvoie l\'état à jour si le webhook traite la commande pendant l\'appel à Stripe', async () => {
+    const product = await createProduct({ stock: 10 });
+    const cartId = guestCartId();
+
+    await request(app)
+      .post('/api/cart')
+      .set('X-Cart-Id', cartId)
+      .send({ productId: product._id.toString(), quantity: 2 });
+
+    const checkoutRes = await request(app)
+      .post('/api/orders/checkout')
+      .set('X-Cart-Id', cartId)
+      .send({});
+
+    // Course réaliste : l'événement Stripe arrive avant que la route de
+    // confirmation n'ait terminé, et marque la commande comme payée.
+    mockRetrievePaymentIntent.mockImplementation(async () => {
+      await markOrderPaid('pi_test_123');
+      return { id: 'pi_test_123', status: 'succeeded' };
+    });
+
+    const res = await request(app)
+      .post(`/api/orders/${checkoutRes.body.orderId}/confirm`)
+      .set('X-Order-Token', checkoutRes.body.trackingToken)
+      .send({});
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.order.status).toBe('paid');
+
+    // Le webhook a déjà décrémenté le stock : la confirmation ne le refait pas.
+    const updatedProduct = await Product.findById(product._id);
+    expect(updatedProduct.stock).toBe(8);
   });
 
   it('marque la commande failed si le paiement a été refusé', async () => {

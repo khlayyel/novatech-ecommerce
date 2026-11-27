@@ -105,13 +105,15 @@ export const confirmOrder = asyncHandler(async (req, res) => {
   const paymentIntent = await retrievePaymentIntent(order.stripePaymentIntentId);
 
   if (paymentIntent.status === 'succeeded') {
-    const updated = (await markOrderPaid(paymentIntent.id)) || order;
-    return res.json({ order: updated });
+    // Le webhook a pu traiter la commande pendant l'appel à Stripe :
+    // on relit l'état réel plutôt que de renvoyer le document chargé plus haut.
+    await markOrderPaid(paymentIntent.id);
+    return res.json({ order: (await Order.findById(id)) || order });
   }
 
   if (['requires_payment_method', 'canceled'].includes(paymentIntent.status)) {
-    const updated = (await markOrderFailed(paymentIntent.id)) || order;
-    return res.json({ order: updated });
+    await markOrderFailed(paymentIntent.id);
+    return res.json({ order: (await Order.findById(id)) || order });
   }
 
   // Paiement encore en cours (requires_confirmation, processing...)
