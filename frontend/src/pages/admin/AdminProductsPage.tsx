@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DataTable from '../../components/ui/DataTable';
 import type { Column } from '../../components/ui/DataTable';
 import Panel from '../../components/ui/Panel';
+import IconButton from '../../components/ui/IconButton';
 import Spinner from '../../components/Spinner';
 import * as productsApi from '../../api/products';
 import { deleteProduct, downloadCsv, listCategories } from '../../api/admin';
@@ -154,21 +155,18 @@ const AdminProductsPage = () => {
         sortable: false,
         render: (product) => (
           <div className="admin-row-actions">
-            <button
-              type="button"
-              className="button button--ghost button--sm"
+            <IconButton
+              icon="edit"
+              label={`Modifier ${product.name}`}
               onClick={() => navigate(`/admin/products/${product._id}/edit`)}
-            >
-              Modifier
-            </button>
-            <button
-              type="button"
-              className="button button--danger-ghost button--sm"
+            />
+            <IconButton
+              icon="delete"
+              tone="danger"
+              label={`Supprimer ${product.name}`}
               onClick={() => handleDelete(product)}
               disabled={deletingId === product._id}
-            >
-              {deletingId === product._id ? 'Suppression…' : 'Supprimer'}
-            </button>
+            />
           </div>
         )
       }

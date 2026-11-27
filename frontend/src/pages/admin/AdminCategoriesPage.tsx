@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Panel from '../../components/ui/Panel';
 import DataTable from '../../components/ui/DataTable';
 import type { Column } from '../../components/ui/DataTable';
+import IconButton from '../../components/ui/IconButton';
 import Spinner from '../../components/Spinner';
 import { deleteCategory, listCategories } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
@@ -116,21 +117,18 @@ const AdminCategoriesPage = () => {
         sortable: false,
         render: (category) => (
           <div className="admin-row-actions">
-            <button
-              type="button"
-              className="button button--ghost button--sm"
+            <IconButton
+              icon="edit"
+              label={`Modifier ${category.name}`}
               onClick={() => navigate(`/admin/categories/${category._id}/edit`)}
-            >
-              Modifier
-            </button>
-            <button
-              type="button"
-              className="button button--danger-ghost button--sm"
+            />
+            <IconButton
+              icon="delete"
+              tone="danger"
+              label={`Supprimer ${category.name}`}
               onClick={() => handleDelete(category)}
               disabled={deletingId === category._id}
-            >
-              {deletingId === category._id ? 'Suppression…' : 'Supprimer'}
-            </button>
+            />
           </div>
         )
       }
