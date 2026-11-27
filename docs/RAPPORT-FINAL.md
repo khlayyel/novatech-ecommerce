@@ -26,7 +26,7 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 | 2 | Modélisation Mongoose (produits, paniers, commandes, utilisateurs) | ✅ | `backend/src/models/` + `Category`, `AuditLog` |
 | 3 | API produits et panier (liste, détail, ajout, quantité, suppression) | ✅ | `product.controller.js`, `cart.controller.js`, tests `products.test.js` / `cart.test.js` |
 | 4 | Stripe : PaymentIntents, commande *pending*, webhook signé | ✅ | `stripe.service.js`, `order.controller.js`, test `webhook.test.js` |
-| 5 | Tests backend Jest + Supertest, dépendances mockées | ✅ | 8 suites, **102 tests**, MongoDB en mémoire |
+| 5 | Tests backend Jest + Supertest, dépendances mockées | ✅ | 8 suites, **105 tests**, MongoDB en mémoire |
 | 6 | Frontend React + TypeScript, Axios, routage | ✅ | `frontend/src/`, `api/request.ts`, React Router 7 |
 | 7 | Composants clés : catalogue, panier, Stripe Elements, confirmation | ✅ | `pages/`, `components/CheckoutForm.tsx` |
 | 8 | Tests frontend Jest + Testing Library | ✅ | 18 suites, **71 tests** |
@@ -65,7 +65,7 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 
 | Contrôle | Commande | Résultat |
 |---|---|---|
-| Tests backend | `npm test --prefix backend` | **102 / 102** |
+| Tests backend | `npm test --prefix backend` | **105 / 105** |
 | Tests frontend | `npm test --prefix frontend` | **71 / 71** |
 | Lint backend | `npm run lint --prefix backend` | 0 erreur |
 | Lint frontend | `npm run lint --prefix frontend` | 0 erreur |
@@ -110,7 +110,8 @@ Comptes de démonstration : `demo@novatech.fr` / `Demo1234!` — `admin@novatech
 
 ## 7. Limites connues
 
-- Images Docker non exécutées localement (aucun démon Docker sur la machine de développement) ; les fichiers sont fournis et validés par la relecture.
+- Images Docker : les deux images sont désormais construites à chaque pipeline CI ; l'exécution via `docker compose` n'a pas encore été testée sur la machine locale (démon Docker non installé au moment de la livraison).
+- Internationalisation : navigation, accueil/catalogue, fiche produit, connexion, coquille d'administration, tableaux et assistant sont traduits FR/EN/AR ; le panier, le tunnel de paiement, le suivi de commande et les libellés métier des écrans d'administration restent en français et doivent être extraits dans les fichiers de ressources lors d'une passe dédiée (l'infrastructure et les trois fichiers de langue sont déjà en place).
 - L'instance Render gratuite s'endort après 15 minutes : première requête ≈ 50 s.
 - Chaque push déclenche deux déploiements identiques (intégration Git + workflow) ; sans impact fonctionnel.
 - Base de démonstration : les tests de smoke laissent quelques commandes et comptes `smoke-…`.
