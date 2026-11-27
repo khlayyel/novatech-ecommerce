@@ -26,6 +26,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.24.11",
     "morgan": "^1.12.1",
+    "novatech-ecommerce": "file:..",
     "stripe": "^23.2.0"
   },
   "devDependencies": {
