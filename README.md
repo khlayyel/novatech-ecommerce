@@ -275,10 +275,9 @@ docker compose up --build
 | `ci.yml` | chaque push / PR | lint backend → tests backend (Jest) → lint frontend → build (typecheck TS) → tests frontend |
 | `deploy.yml` | push sur `main` | mêmes vérifications, puis Deploy Hook Render + déploiement Vercel |
 
-Le déploiement ne s'active que si les secrets correspondants sont configurés (`Settings → Secrets and variables → Actions`) :
-`RENDER_BACKEND_HOOK`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, et les variables `DEPLOY_RENDER` / `DEPLOY_VERCEL` à `true`. **Aucun secret n'apparaît dans le YAML.**
+Le pipeline est **activé** : les secrets `RENDER_BACKEND_HOOK`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` et les variables `DEPLOY_RENDER` / `DEPLOY_VERCEL` (`true`) sont configurés. Chaque push sur `main` exécute les tests, puis déclenche le Deploy Hook Render et un déploiement Vercel. **Aucun secret n'apparaît dans le YAML.**
 
-En l'état, Render et Vercel redéploient déjà automatiquement via leur intégration Git ; `deploy.yml` permet de rendre ce déclenchement explicite et de bloquer un déploiement si les tests échouent.
+Render et Vercel redéploient aussi via leur intégration Git : un même commit peut donc produire deux déploiements identiques. Le workflow reste le garde-fou (rien n'est déployé si un test échoue) et permet un déclenchement manuel (`workflow_dispatch`).
 
 ---
 
