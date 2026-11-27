@@ -25,3 +25,12 @@ export const checkoutLimiter = rateLimit({
   skip: skipInTests,
   message: { message: 'Trop de tentatives de paiement, réessayez dans quelques minutes.' }
 });
+
+export const assistantLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: skipInTests,
+  message: { message: 'Trop de messages envoyés à l’assistant, réessayez dans quelques minutes.' }
+});

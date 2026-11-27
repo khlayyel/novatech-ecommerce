@@ -122,5 +122,26 @@
       "users": "Clients & rôles",
       "security": "Sécurité & journal"
     }
+  },
+  "assistant": {
+    "title": "Assistant NovaTech",
+    "titleCustomer": "Assistant boutique",
+    "titleAdmin": "Assistant administrateur",
+    "subtitle": "En ligne · réponses instantanées",
+    "introCustomer": "Bonjour ! Je peux vous aider à trouver un produit, vérifier un stock ou suivre une commande.",
+    "introAdmin": "Bonjour ! Posez-moi une question sur les ventes, les stocks ou les clients.",
+    "placeholder": "Écrivez votre message…",
+    "send": "Envoyer",
+    "thinking": "L'assistant écrit…",
+    "error": "L'assistant est momentanément indisponible.",
+    "reset": "Nouvelle conversation",
+    "close": "Fermer l'assistant",
+    "open": "Ouvrir l'assistant",
+    "suggestCustomer1": "Quels écrans 4K avez-vous en stock ?",
+    "suggestCustomer2": "Où en est ma commande ?",
+    "suggestCustomer3": "Quels sont vos délais de livraison ?",
+    "suggestAdmin1": "Chiffre d'affaires des 7 derniers jours",
+    "suggestAdmin2": "Quels produits sont en stock faible ?",
+    "suggestAdmin3": "Top 5 des ventes ce mois-ci"
   }
 }

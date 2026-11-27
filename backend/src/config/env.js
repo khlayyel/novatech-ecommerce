@@ -19,6 +19,9 @@ const config = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
   frontendUrls: parseList(process.env.FRONTEND_URL, 'http://localhost:5173,http://localhost:3000'),
+  // Assistant IA (Google Gemini) — fonctionnalité facultative.
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
   // Durée de vie d'un panier inactif avant expiration automatique (TTL MongoDB).
   cartTtlDays: 7,
   currency: 'eur'

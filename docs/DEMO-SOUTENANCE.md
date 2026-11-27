@@ -56,6 +56,13 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 8. **Sécurité** `/admin/security` : posture de l'API, filtrer le journal d'audit par action/auteur, et vérifier que les actions précédentes y figurent.
 9. Montrer qu'un client normal n'a pas le lien, est redirigé de `/admin` et reçoit `403` sur `/api/admin/stats`.
 
+## 6 ter. Assistant IA (≈ 1 min)
+
+1. Cliquer sur le bouton **casque** en bas à droite : la fenêtre Helpdesk s'ouvre.
+2. Poser « Quels écrans 4K avez-vous en stock ? » → la réponse cite le produit et le stock réels lus dans MongoDB.
+3. Se connecter en admin : l'assistant propose des questions analytiques ; demander « Chiffre d'affaires des 7 derniers jours et stock faible » → chiffres réels et période affichée.
+4. Poser une question hors périmètre → l'assistant recentre ; tester « Nouvelle conversation ».
+
 ## 7. Qualité & DevOps (échange, ≈ 1 min)
 
 - `npm test` : montrer les 6 suites backend (86 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 14 suites frontend (53 tests, RTL).

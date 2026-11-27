@@ -22,6 +22,7 @@ import AdminCategoryFormPage from './pages/admin/AdminCategoryFormPage';
 import AdminStockPage from './pages/admin/AdminStockPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminSecurityPage from './pages/admin/AdminSecurityPage';
+import AssistantWidget from './components/assistant/AssistantWidget';
 
 /**
  * Racine de l'application : layout (navbar + footer) et routage.
@@ -79,6 +80,7 @@ const App = () => {
         </Routes>
       </main>
       {!isAdmin && <Footer />}
+      <AssistantWidget />
     </>
   );
 };

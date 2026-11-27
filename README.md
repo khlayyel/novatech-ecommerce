@@ -37,6 +37,7 @@ Une boutique complète : catalogue filtrable, panier invité **ou** connecté (J
 | Qualité | ESLint 10 (flat config), TypeScript `--noEmit`, GitHub Actions |
 | Conteneurisation | Docker multi-stage (API + web/nginx), docker-compose (mongo + api + web) |
 | Internationalisation | FR / EN / AR — fichiers de ressources JSON, résolution par clé, RTL automatique pour l'arabe |
+| Assistant IA | Google Gemini 3.5 Flash-Lite (function calling) + outils MongoDB ciblés, widget Helpdesk flottant |
 | Déploiement | Render (backend), Vercel (frontend), GitHub Actions (CI/CD) |
 
 ---
@@ -52,7 +53,7 @@ novatech-ecommerce/
 │   │   ├── controllers/        # produit, catégorie, groupe, panier, commande, auth, admin, média, export
 │   │   ├── routes/             # produit, catégorie, panier, commande, auth, admin
 │   │   ├── middleware/         # auth (JWT + admin), cart (X-Cart-Id), errors, rate limits
-│   │   ├── services/           # stripe.service, order.service (idempotence), audit.service
+│   │   ├── services/           # stripe.service, order.service (idempotence), audit.service, gemini.service, assistant.service
 │   │   ├── utils/              # asyncHandler
 │   │   ├── app.js              # assemblage Express (CORS, helmet, routes)
 │   │   ├── server.js           # démarrage + arrêt propre
@@ -64,6 +65,7 @@ novatech-ecommerce/
 │   │   ├── api/                # client Axios central (+ produits, panier, commandes, auth, admin)
 │   │   ├── components/         # Navbar, ProductCard, CheckoutForm, ProtectedRoute…
 │   │   ├── components/admin/   # AdminIcon, BarChart (graphiques sans dépendance)
+│   │   ├── components/assistant/ # widget Helpdesk (Gemini)
 │   │   ├── components/ui/      # Panel repliable, DataTable, ImageDropzone, IconButton, LocaleSwitcher
 │   │   ├── context/            # AuthContext (JWT), CartContext, ToastContext
 │   │   ├── i18n/               # ressources fr/en/ar + provider + hook useI18n
@@ -147,6 +149,7 @@ Base : `http://localhost:5000/api`
 | GET | `/admin/users?search=&role=` | JWT **admin** | Comptes avec nombre de commandes et total dépensé | 200 / 403 |
 | PATCH | `/admin/users/:id/role` | JWT **admin** | Promotion / rétrogradation (garde-fous dernier admin) | 200 / 400 / 403 / 404 / 409 |
 | GET | `/admin/audit` | JWT **admin** | Journal des actions d'administration | 200 / 403 |
+| POST | `/assistant/chat` | JWT **optionnel** | Assistant IA : outils catalogue/commandes ; outils analytiques réservés admin | 200 / 400 / 429 / 502 / 503 |
 | GET | `/admin/export/orders.csv` | JWT **admin** | Export CSV des commandes (séparateur `;`, BOM Excel FR) | 200 / 403 |
 | GET | `/admin/export/products.csv` | JWT **admin** | Export CSV du catalogue (famille, sous-famille, valeur du stock) | 200 / 403 |
 | GET | `/admin/export/users.csv` | JWT **admin** | Export CSV des clients et de leurs dépenses | 200 / 403 |
@@ -267,6 +270,8 @@ Application : **http://localhost:5173** — API : **http://localhost:5000/api/he
 | `STRIPE_WEBHOOK_SECRET` | Secret du webhook (`whsec_…`) | voir §Déploiement |
 | `JWT_SECRET` | Longue chaîne aléatoire | `openssl rand -hex 32` |
 | `FRONTEND_URL` | Origines CORS autorisées | `http://localhost:5173` |
+| `GEMINI_API_KEY` | Clé API Google Gemini (active l'assistant IA) | `AQ.…` |
+| `GEMINI_MODEL` | Modèle Gemini utilisé | `gemini-3.5-flash-lite` |
 
 ### `frontend/.env`
 
@@ -360,7 +365,7 @@ Render et Vercel sont reliés au dépôt GitHub : chaque push sur `main` redépl
 ### Procédure reproductible (nouveau compte)
 
 1. **MongoDB Atlas** — créez un cluster gratuit (M0), un utilisateur et récupérez l'URI (`mongodb+srv://…`), autorisez l'IP `0.0.0.0/0` pour Render.
-2. **Backend sur Render** — nouveau Web Service → connectez le repo → *Root directory* `backend` → build `npm ci --omit=dev` → start `npm start` (ou importez le blueprint `render.yaml`). Variables : `NODE_ENV=production`, `MONGODB_URI`, `STRIPE_SECRET_KEY`, `JWT_SECRET`, `STRIPE_WEBHOOK_SECRET`, `FRONTEND_URL=https://votre-app.vercel.app`. Health check : `/api/health`.
+2. **Backend sur Render** — nouveau Web Service → connectez le repo → *Root directory* `backend` → build `npm ci --omit=dev` → start `npm start` (ou importez le blueprint `render.yaml`). Variables : `NODE_ENV=production`, `MONGODB_URI`, `STRIPE_SECRET_KEY`, `JWT_SECRET`, `STRIPE_WEBHOOK_SECRET`, `FRONTEND_URL=https://votre-app.vercel.app`, `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-3.5-flash-lite`. Health check : `/api/health`.
 3. **Webhook Stripe** — Dashboard → Developers → Webhooks → *Add endpoint* : `https://votre-api.onrender.com/api/orders/webhook`, événements `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled` → copiez le `whsec_…` dans Render.
 4. **Frontend sur Vercel** — import du repo → *Root directory* `frontend` (framework détecté : Vite) → variables `VITE_API_URL=https://votre-api.onrender.com/api` et `VITE_STRIPE_PUBLIC_KEY=pk_test_…`.
 5. **Vérification de bout en bout** : commandez avec la carte `4242 4242 4242 4242` → confirmation → le statut passe à *Payée* et le stock baisse.
@@ -396,6 +401,21 @@ t('table.range', { from, to, total });            // interpolation
 - **Ajouter une langue** : copier un fichier JSON, traduire les valeurs, puis l'enregistrer dans `LOCALES` et `RESOURCES` (`core.ts`).
 
 Périmètre actuel : navigation, pied de page, accueil/catalogue, fiches produit, connexion, coquille d'administration (menu, titres, sortie) et tableau standard (pagination, tri, détail). Les libellés métier propres aux écrans d'administration, au panier et au tunnel de paiement restent en français et s'extraient de la même façon, clé par clé.
+
+---
+
+## 🤖 Assistant IA (Gemini + MongoDB)
+
+Un assistant conversationnel est disponible dans toute l'application via un **bouton flottant Helpdesk** (icône casque) en bas à droite.
+
+- **Modèle** : Google **Gemini 3.5 Flash-Lite** (le 2.5 Flash-Lite n'est plus proposé aux nouvelles clés), appelé via `generateContent`.
+- **Deux expériences** : *Assistant boutique* pour visiteurs/clients (produits, stocks, suivi de commande) et *Assistant administrateur* (ventes, familles, stocks, commandes, clients).
+- **Outils MongoDB ciblés** (function calling) : `search_products`, `get_product`, `get_order_status`, `get_my_orders` ; côté admin : `get_sales_stats`, `get_sales_by_category`, `get_top_products`, `get_low_stock_products`, `get_order_summary`, `get_recent_orders`, `get_customer_stats`, `get_inventory_value`. Chaque outil ne projette que les champs utiles et limite ses résultats.
+- **Sécurité** : outils analytiques réservés au rôle `admin` (relu en base à chaque requête) ; suivi de commande accessible au propriétaire JWT ou au jeton de suivi ; aucun accès aux données d'un autre client ; clé Gemini **uniquement côté serveur**.
+- **Optimisation du quota** : 20 messages / 15 min par IP, historique tronqué à 10 messages, 512 tokens de sortie, 3 appels d'outils maximum par question, résultats tronqués, cache mémoire de 30–60 s sur les agrégats admin.
+- **Configuration** : `GEMINI_API_KEY` (active l'assistant) et `GEMINI_MODEL` (défaut `gemini-3.5-flash-lite`).
+
+Sans clé configurée, l'endpoint répond `503` avec un message clair ; le reste de la boutique fonctionne normalement.
 
 ---
 

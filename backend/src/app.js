@@ -14,6 +14,7 @@ import adminRoutes from './routes/admin.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import mediaRoutes from './routes/media.routes.js';
 import categoryGroupRoutes from './routes/category-group.routes.js';
+import assistantRoutes from './routes/assistant.routes.js';
 import { stripeWebhook } from './controllers/order.controller.js';
 import { ApiError, notFound, errorHandler } from './middleware/error.js';
 
@@ -69,6 +70,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/category-groups', categoryGroupRoutes);
+app.use('/api/assistant', assistantRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

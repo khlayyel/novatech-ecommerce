@@ -122,5 +122,26 @@
       "users": "Customers & roles",
       "security": "Security & audit"
     }
+  },
+  "assistant": {
+    "title": "NovaTech Assistant",
+    "titleCustomer": "Shop assistant",
+    "titleAdmin": "Admin assistant",
+    "subtitle": "Online · instant answers",
+    "introCustomer": "Hello! I can help you find a product, check stock or track an order.",
+    "introAdmin": "Hello! Ask me about sales, stock or customers.",
+    "placeholder": "Type your message…",
+    "send": "Send",
+    "thinking": "The assistant is typing…",
+    "error": "The assistant is temporarily unavailable.",
+    "reset": "New conversation",
+    "close": "Close assistant",
+    "open": "Open assistant",
+    "suggestCustomer1": "Which 4K monitors are in stock?",
+    "suggestCustomer2": "Where is my order?",
+    "suggestCustomer3": "What are your delivery times?",
+    "suggestAdmin1": "Revenue for the last 7 days",
+    "suggestAdmin2": "Which products are low on stock?",
+    "suggestAdmin3": "Top 5 sales this month"
   }
 }
