@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../utils/format';
+import { imageSrc } from '../utils/image';
 import { useI18n } from '../i18n';
 import type { Product } from '../types';
 
@@ -19,7 +20,7 @@ const ProductCard = ({ product, onAdd, adding = false }: ProductCardProps) => {
     <article className="product-card">
       <div className="product-card__media">
         <Link to={`/products/${product._id}`} className="product-card__media-link">
-          <img src={product.imageUrl} alt={product.name} loading="lazy" />
+          <img src={imageSrc(product.imageUrl)} alt={product.name} loading="lazy" />
         </Link>
         <span className="product-card__category">{product.category}</span>
         {soldOut && <span className="product-card__ribbon">{t('product.soldOut')}</span>}

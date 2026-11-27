@@ -11,6 +11,7 @@ import { getErrorMessage } from '../utils/request';
 import { useCart } from '../context/CartContext';
 import { STRIPE_PUBLIC_KEY } from '../config';
 import { formatPrice } from '../utils/format';
+import { imageSrc } from '../utils/image';
 import type { CheckoutResponse } from '../types';
 
 /**
@@ -140,7 +141,7 @@ const CheckoutPage = () => {
           <ul className="checkout-summary__items">
             {items.map((item) => (
               <li key={item.product._id}>
-                <img src={item.product.imageUrl} alt="" />
+                <img src={imageSrc(item.product.imageUrl)} alt="" />
                 <span className="checkout-summary__name">
                   {item.product.name}
                   <small>× {item.quantity}</small>

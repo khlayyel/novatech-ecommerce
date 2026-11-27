@@ -5,6 +5,7 @@ import Spinner from '../components/Spinner';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { formatPrice } from '../utils/format';
+import { imageSrc } from '../utils/image';
 
 /** Page panier : modification des quantités, suppression, récapitulatif, passage au paiement. */
 const CartPage = () => {
@@ -71,7 +72,7 @@ const CartPage = () => {
           <ul className="cart-items__list">
             {items.map((item) => (
               <li key={item.product._id} className="cart-item">
-                <img className="cart-item__media" src={item.product.imageUrl} alt={item.product.name} />
+                <img className="cart-item__media" src={imageSrc(item.product.imageUrl)} alt={item.product.name} />
 
                 <div className="cart-item__info">
                   <Link to="/" className="cart-item__name">{item.product.name}</Link>

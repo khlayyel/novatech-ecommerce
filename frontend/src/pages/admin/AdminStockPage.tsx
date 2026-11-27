@@ -8,6 +8,7 @@ import { updateProductStock, listCategories } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatPrice } from '../../utils/format';
+import { imageSrc } from '../../utils/image';
 import type { Product } from '../../types';
 import type { CategoryInfo } from '../../types';
 
@@ -129,7 +130,7 @@ const AdminStockPage = () => {
         sortValue: (product) => product.name,
         render: (product) => (
           <div className="admin-product__cell">
-            <img src={product.imageUrl} alt="" />
+            <img src={imageSrc(product.imageUrl)} alt="" />
             <span>{product.name}</span>
           </div>
         )

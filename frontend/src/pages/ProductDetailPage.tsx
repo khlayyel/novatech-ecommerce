@@ -10,6 +10,7 @@ import { useToast } from '../context/ToastContext';
 import { useI18n } from '../i18n';
 import { getErrorMessage } from '../utils/request';
 import { formatPrice } from '../utils/format';
+import { imageSrc } from '../utils/image';
 import type { Product } from '../types';
 
 /**
@@ -25,6 +26,7 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -42,6 +44,9 @@ const ProductDetailPage = () => {
         const data = await productsApi.getProduct(id);
         if (cancelled) return;
         setProduct(data);
+        setActiveImage(
+          data.imageUrls && data.imageUrls.length > 0 ? data.imageUrls[0] : data.imageUrl || ''
+        );
 
         const siblings = await productsApi.listProducts({ category: data.category, limit: 4 });
         if (!cancelled) {
@@ -114,6 +119,13 @@ const ProductDetailPage = () => {
 
   const soldOut = product.stock <= 0;
   const lowStock = !soldOut && product.stock <= 5;
+  const gallery =
+    product.imageUrls && product.imageUrls.length > 0
+      ? product.imageUrls
+      : product.imageUrl
+        ? [product.imageUrl]
+        : [];
+  const mainImage = activeImage || gallery[0] || '';
 
   return (
     <div className="container product-detail">
@@ -127,8 +139,25 @@ const ProductDetailPage = () => {
 
       <div className="product-detail__grid">
         <figure className="product-detail__media">
-          <img src={product.imageUrl} alt={product.name} />
+          <img src={imageSrc(mainImage)} alt={product.name} />
           <figcaption className="product-detail__category">{product.category}</figcaption>
+
+          {gallery.length > 1 && (
+            <div className="product-gallery">
+              {gallery.map((url, index) => (
+                <button
+                  key={`${url}-${index}`}
+                  type="button"
+                  className={`product-gallery__thumb${mainImage === url ? ' is-active' : ''}`}
+                  aria-label={`Voir l'image ${index + 1}`}
+                  aria-pressed={mainImage === url}
+                  onClick={() => setActiveImage(url)}
+                >
+                  <img src={imageSrc(url)} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
         </figure>
 
         <div className="product-detail__info">

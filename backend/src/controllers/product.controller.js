@@ -4,6 +4,7 @@ import Category from '../models/Category.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../middleware/error.js';
 import { logAdminAction } from '../services/audit.service.js';
+import { deleteMediaByUrls } from '../services/media.service.js';
 
 const MAX_LIMIT = 200;
 
@@ -182,5 +183,6 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   await logAdminAction(req, 'product.delete', product.name);
+  await deleteMediaByUrls([...(product.imageUrls || []), product.imageUrl]);
   res.json({ deleted: true, id });
 });

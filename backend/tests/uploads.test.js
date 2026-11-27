@@ -99,6 +99,29 @@ describe('Images des produits', () => {
 
     expect(res.statusCode).toBe(400);
   });
+
+  it('supprime les médias lorsque le produit est supprimé', async () => {
+    const admin = await loginAdmin(app);
+
+    const upload = await request(app)
+      .post('/api/admin/uploads')
+      .set(bearer(admin.body.token))
+      .send({ dataUrl: PNG });
+
+    const created = await request(app)
+      .post('/api/admin/products')
+      .set(bearer(admin.body.token))
+      .send({ ...payload, imageUrls: [upload.body.url] });
+
+    const removed = await request(app)
+      .delete(`/api/admin/products/${created.body._id}`)
+      .set(bearer(admin.body.token));
+
+    expect(removed.statusCode).toBe(200);
+
+    const media = await request(app).get(upload.body.url);
+    expect(media.statusCode).toBe(404);
+  });
 });
 
 describe('Images des familles et catégories', () => {

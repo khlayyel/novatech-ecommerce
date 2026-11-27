@@ -171,7 +171,7 @@ Les écrans **Produits**, **Commandes** et **Clients** proposent un **export CSV
 
 **CRUD en pages dédiées** : chaque ajout et chaque modification ouvre sa propre page (`/new`, `/:id/edit`) avec son endpoint dédié (`POST`, `PUT`, `DELETE`). Le formulaire d'édition est chargé depuis l'API et **prérempli avec les données réelles** de l'élément ; l'annulation ramène à la liste.
 
-**Images par glisser-déposer** : un composant unique `ImageDropzone` équipe les formulaires. Les fichiers sont envoyés à l'API et stockés en base (médias persistants, 2 Mo max, PNG/JPEG/WebP/GIF). Un produit accepte **jusqu'à 5 images** (la première sert de visuel principal, réordonnancement par glisser) ; une famille, une sous-famille et une catégorie de niveau 1 ont chacune leur visuel.
+**Images par glisser-déposer** : un composant unique `ImageDropzone` équipe les formulaires. Les fichiers sont envoyés à l'API et stockés en base (médias persistants, 2 Mo max, PNG/JPEG/WebP/GIF). Un produit accepte **jusqu'à 5 images** (la première sert de visuel principal, réordonnancement par glisser) et la fiche produit les affiche en **galerie de vignettes** ; une famille, une sous-famille et une catégorie de niveau 1 ont chacune leur visuel.
 
 **Hiérarchie du catalogue** : `Catégorie` (niveau 1, champ `Category.group`) → `Famille` (`Category.name`) → `Sous-famille` (`Product.subcategory`). Les filtres sont en cascade dans le catalogue public, les produits, les stocks et les catégories : la famille n'est sélectionnable qu'après la catégorie, la sous-famille qu'après la famille.
 

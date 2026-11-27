@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge';
 import { getOrder } from '../api/orders';
 import { getErrorMessage } from '../utils/request';
 import { formatPrice } from '../utils/format';
+import { imageSrc } from '../utils/image';
 import type { Order } from '../types';
 
 /**
@@ -88,7 +89,7 @@ const ConfirmationPage = () => {
           <ul className="order-items">
             {order.items.map((item, index) => (
               <li key={index} className="order-item">
-                <img src={item.imageUrl} alt="" />
+                <img src={imageSrc(item.imageUrl)} alt="" />
                 <div className="order-item__info">
                   <span className="order-item__name">{item.name}</span>
                   <small>

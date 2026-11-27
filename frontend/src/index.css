@@ -1759,6 +1759,38 @@ h2 {
   object-fit: cover;
 }
 
+.product-gallery {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.55rem 0.6rem;
+  overflow-x: auto;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.product-gallery__thumb {
+  flex: 0 0 auto;
+  width: 58px;
+  height: 44px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+}
+
+.product-gallery__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-gallery__thumb.is-active {
+  border-color: var(--accent);
+}
+
 .product-detail__category {
   position: absolute;
   top: 1rem;
@@ -2468,6 +2500,20 @@ textarea.input {
 
 .chip--static {
   cursor: default;
+}
+
+.chip.chip--static {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chip__thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--bg);
+  object-fit: cover;
 }
 
 /* ── Clients, rôles, sécurité ──────────────────────────────────── */

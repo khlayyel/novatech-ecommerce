@@ -26,10 +26,10 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 | 2 | Modélisation Mongoose (produits, paniers, commandes, utilisateurs) | ✅ | `backend/src/models/` + `Category`, `AuditLog` |
 | 3 | API produits et panier (liste, détail, ajout, quantité, suppression) | ✅ | `product.controller.js`, `cart.controller.js`, tests `products.test.js` / `cart.test.js` |
 | 4 | Stripe : PaymentIntents, commande *pending*, webhook signé | ✅ | `stripe.service.js`, `order.controller.js`, test `webhook.test.js` |
-| 5 | Tests backend Jest + Supertest, dépendances mockées | ✅ | 7 suites, **95 tests**, MongoDB en mémoire |
+| 5 | Tests backend Jest + Supertest, dépendances mockées | ✅ | 7 suites, **96 tests**, MongoDB en mémoire |
 | 6 | Frontend React + TypeScript, Axios, routage | ✅ | `frontend/src/`, `api/request.ts`, React Router 7 |
 | 7 | Composants clés : catalogue, panier, Stripe Elements, confirmation | ✅ | `pages/`, `components/CheckoutForm.tsx` |
-| 8 | Tests frontend Jest + Testing Library | ✅ | 16 suites, **63 tests** |
+| 8 | Tests frontend Jest + Testing Library | ✅ | 17 suites, **66 tests** |
 | 9 | Automatisation, Docker, GitHub Actions | ✅ | `Dockerfile.*`, `docker-compose.yml`, `.github/workflows/ci.yml` + `deploy.yml` |
 | 10 | Déploiement effectif (Render + Vercel + Atlas + Stripe) | ✅ | https://novatech-ecommerce.vercel.app · https://novatech-api-7qa9.onrender.com |
 | 11 | Bonus : stock, suivi, JWT | ✅ | `order.service.js`, `OrderDetailPage.tsx`, `middleware/auth.js` |
@@ -65,8 +65,8 @@ sont des approfondissements autorisés par le module 11 (« bonus et approfondis
 
 | Contrôle | Commande | Résultat |
 |---|---|---|
-| Tests backend | `npm test --prefix backend` | **95 / 95** |
-| Tests frontend | `npm test --prefix frontend` | **63 / 63** |
+| Tests backend | `npm test --prefix backend` | **96 / 96** |
+| Tests frontend | `npm test --prefix frontend` | **66 / 66** |
 | Lint backend | `npm run lint --prefix backend` | 0 erreur |
 | Lint frontend | `npm run lint --prefix frontend` | 0 erreur |
 | Typecheck + build | `npm run build` | ✅ (≈ 131 kB gzip) |

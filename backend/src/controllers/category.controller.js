@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../middleware/error.js';
 import { logAdminAction } from '../services/audit.service.js';
+import { deleteMediaByUrls } from '../services/media.service.js';
 
 const normalizeName = (value) => String(value ?? '').trim();
 
@@ -167,6 +168,9 @@ export const deleteCategory = asyncHandler(async (req, res) => {
 
   await category.deleteOne();
   await logAdminAction(req, 'category.delete', category.name);
+
+  const subImages = category.subcategoryImages ? [...category.subcategoryImages.values()] : [];
+  await deleteMediaByUrls([category.imageUrl, ...subImages]);
 
   res.json({ deleted: true, id: category._id });
 });

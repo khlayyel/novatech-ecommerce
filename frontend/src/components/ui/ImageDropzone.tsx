@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { uploadImage } from '../../api/admin';
 import { getErrorMessage } from '../../utils/request';
+import { imageSrc } from '../../utils/image';
 
 interface ImageDropzoneProps {
   value: string[];
@@ -138,7 +139,7 @@ const ImageDropzone = ({ value, onChange, max = 1, label = 'Images', hint }: Ima
                 if (Number.isInteger(from)) move(from, index);
               }}
             >
-              <img src={url} alt="" />
+              <img src={imageSrc(url)} alt="" />
               {index === 0 && <span className="dropzone-item__badge">Principale</span>}
               <button
                 type="button"

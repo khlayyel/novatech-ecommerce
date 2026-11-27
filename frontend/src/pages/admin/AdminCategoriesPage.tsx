@@ -8,6 +8,7 @@ import Spinner from '../../components/Spinner';
 import { deleteCategory, listCategories } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
+import { imageSrc } from '../../utils/image';
 import type { CategoryInfo } from '../../types';
 
 /** Familles et sous-familles : tableau triable/paginé, création et édition en pages dédiées. */
@@ -80,7 +81,7 @@ const AdminCategoriesPage = () => {
         sortValue: (category) => category.name,
         render: (category) => (
           <div className="admin-user__cell">
-            {category.imageUrl && <img className="category-thumb" src={category.imageUrl} alt="" />}
+            {category.imageUrl && <img className="category-thumb" src={imageSrc(category.imageUrl)} alt="" />}
             <strong>{category.name}</strong>
           </div>
         )
@@ -106,9 +107,15 @@ const AdminCategoriesPage = () => {
             <span className="muted small">—</span>
           ) : (
             <ul className="chip-row chip-row--static">
-              {category.subcategories.slice(0, 4).map((name) => (
-                <li key={name} className="chip chip--static">{name}</li>
-              ))}
+              {category.subcategories.slice(0, 4).map((name) => {
+                const image = category.subcategoryImages?.[name];
+                return (
+                  <li key={name} className="chip chip--static">
+                    {image && <img className="chip__thumb" src={imageSrc(image)} alt="" />}
+                    {name}
+                  </li>
+                );
+              })}
               {category.subcategories.length > 4 && (
                 <li className="chip chip--static">+{category.subcategories.length - 4}</li>
               )}

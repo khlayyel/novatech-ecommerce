@@ -84,6 +84,26 @@ describe('ProductDetailPage', () => {
     expect(mockShowToast).toHaveBeenCalled();
   });
 
+  it('affiche la galerie et change l\'image principale', async () => {
+    mockGetProduct.mockResolvedValue({
+      ...product,
+      imageUrls: ['/api/media/a', '/api/media/b']
+    });
+
+    renderPage();
+
+    const thumbs = await screen.findAllByRole('button', { name: /Voir l.image/i });
+    expect(thumbs).toHaveLength(2);
+
+    const mainImage = screen.getByRole('img', { name: 'ClearView 27" 4K' });
+    expect(mainImage.getAttribute('src')).toMatch(/\/api\/media\/a$/);
+
+    await userEvent.click(thumbs[1]);
+
+    expect(mainImage.getAttribute('src')).toMatch(/\/api\/media\/b$/);
+    expect(thumbs[1]).toHaveAttribute('aria-pressed', 'true');
+  });
+
   it('affiche un état d\'erreur pour un produit inconnu', async () => {
     mockGetProduct.mockRejectedValue(new Error('Produit introuvable'));
 

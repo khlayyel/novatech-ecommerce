@@ -8,6 +8,7 @@ import { createProduct, listCategories, updateProduct } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatPrice } from '../../utils/format';
+import { imageSrc } from '../../utils/image';
 import ImageDropzone from '../../components/ui/ImageDropzone';
 import type { CategoryInfo } from '../../types';
 
@@ -259,7 +260,7 @@ const AdminProductFormPage = () => {
               <span>Aperçu</span>
               <div className="form-preview">
                 {images[0] ? (
-                  <img src={images[0]} alt="" />
+                  <img src={imageSrc(images[0])} alt="" />
                 ) : (
                   <span className="muted small">Aucune image</span>
                 )}

@@ -10,6 +10,7 @@ import { deleteProduct, downloadCsv, listCategories } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatPrice } from '../../utils/format';
+import { imageSrc } from '../../utils/image';
 import type { Product } from '../../types';
 import type { CategoryInfo } from '../../types';
 
@@ -117,7 +118,7 @@ const AdminProductsPage = () => {
         searchValue: (product) => `${product.name} ${product.subcategory || ''} ${product.category}`,
         render: (product) => (
           <div className="admin-product__cell">
-            <img src={product.imageUrl} alt="" />
+            <img src={imageSrc(product.imageUrl)} alt="" />
             <span>
               {product.name}
               {product.subcategory && <small className="muted block">{product.subcategory}</small>}

@@ -8,6 +8,7 @@ import { downloadCsv, listOrders, updateOrderStatus } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatDate, formatPrice } from '../../utils/format';
+import { imageSrc } from '../../utils/image';
 import type { AdminOrder, OrderStatus } from '../../types';
 
 const STATUS_FILTERS: { value: string; label: string }[] = [
@@ -162,7 +163,7 @@ const AdminOrdersPage = () => {
         <ul className="order-items">
           {order.items.map((item, index) => (
             <li key={`${item.product}-${index}`} className="order-item">
-              <img src={item.imageUrl} alt="" />
+              <img src={imageSrc(item.imageUrl)} alt="" />
               <div className="order-item__info">
                 <span className="order-item__name">{item.name}</span>
                 <small>{formatPrice(item.priceAtPurchase)} × {item.quantity}</small>
