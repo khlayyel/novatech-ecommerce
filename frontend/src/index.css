@@ -3590,11 +3590,55 @@ textarea.input {
 }
 
 .admin-page-head {
+  position: relative;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.9rem;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent-soft) 130%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-page-head::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--accent-gradient);
+}
+
+.admin-page-head::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -60px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+.admin-page-head__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.3);
+}
+
+.admin-page-head__text {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
 }
 
 .admin-topbar .admin-avatar {
@@ -3613,8 +3657,26 @@ textarea.input {
 }
 
 .admin-page-head p {
-  margin-top: 0.2rem;
-  font-size: 0.92rem;
+  margin-top: 0.1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .admin-page-head {
+    gap: 0.7rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .admin-page-head__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .admin-page-head h1 {
+    font-size: 1.25rem;
+  }
 }
 
 .admin-topbar__user .locale-switcher {

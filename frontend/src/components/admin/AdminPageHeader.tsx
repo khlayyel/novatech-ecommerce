@@ -1,22 +1,28 @@
-import type { ReactNode } from 'react';
+import AdminIcon from './AdminIcon';
+import type { AdminIconName } from './AdminIcon';
 
 interface AdminPageHeaderProps {
   title: string;
   subtitle?: string;
-  actions?: ReactNode;
+  icon?: AdminIconName;
 }
 
 /**
  * En-tête de page de l'administration : premier élément du contenu,
  * sous la barre supérieure fixe. Il défile avec la page (non fixe).
  */
-const AdminPageHeader = ({ title, subtitle, actions }: AdminPageHeaderProps) => (
+const AdminPageHeader = ({ title, subtitle, icon }: AdminPageHeaderProps) => (
   <header className="admin-page-head">
-    <div>
+    {icon && (
+      <span className="admin-page-head__icon" aria-hidden="true">
+        <AdminIcon name={icon} size={24} />
+      </span>
+    )}
+
+    <div className="admin-page-head__text">
       <h1>{title}</h1>
-      {subtitle && <p className="muted">{subtitle}</p>}
+      {subtitle && <p>{subtitle}</p>}
     </div>
-    {actions && <div className="admin-page-head__actions">{actions}</div>}
   </header>
 );
 

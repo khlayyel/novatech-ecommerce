@@ -36,6 +36,16 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin': 'admin.pages.dashboard'
 };
 
+const PAGE_SUBTITLES: Record<string, string> = {
+  '/admin': "Vue d'ensemble de la boutique",
+  '/admin/products': 'Catalogue, stocks et visuels',
+  '/admin/categories': 'Organisez les familles et sous-familles',
+  '/admin/stock': 'Suivi et réapprovisionnement',
+  '/admin/orders': 'Traitement et expédition',
+  '/admin/users': 'Comptes, rôles et achats',
+  '/admin/security': 'Protection et journal d’audit'
+};
+
 const COLLAPSE_KEY = 'novatech.admin.sidebar-collapsed';
 
 const readCollapsed = () => {
@@ -80,6 +90,7 @@ const AdminPage = () => {
       .sort((left, right) => right.length - left.length)
       .find((path) => location.pathname.startsWith(path)) ?? '/admin';
   const title = t(PAGE_TITLES[matchedPath]);
+  const activeItem = NAV_ITEMS.find((item) => item.to === matchedPath);
 
   const handleLogout = () => {
     logout();
@@ -160,7 +171,11 @@ const AdminPage = () => {
         </header>
 
         <main className="admin-content">
-          <AdminPageHeader title={title} />
+          <AdminPageHeader
+            title={title}
+            subtitle={PAGE_SUBTITLES[matchedPath]}
+            icon={activeItem?.icon}
+          />
           <Outlet />
         </main>
 
