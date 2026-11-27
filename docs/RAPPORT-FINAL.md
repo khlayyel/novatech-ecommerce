@@ -119,10 +119,9 @@ Comptes de démonstration : `demo@novatech.fr` / `Demo1234!` — `admin@novatech
 
 ## 8. Actions restant à la charge de l'étudiant
 
-1. **Renouveler le secret de webhook Stripe** exposé pendant la mise en place (test mode) puis le reporter dans Render et `backend/.env`.
-2. Supprimer le secret inutilisé `DEPLOY_RENDER` créé par erreur dans les *secrets* GitHub (les variables suffisent).
-3. Optionnel : désactiver l'auto-deploy Render si l'on souhaite que le workflow soit l'unique déclencheur.
-4. Préparer la soutenance avec `docs/DEMO-SOUTENANCE.md` (scénario minuté, plan B).
+1. Supprimer le secret inutilisé `DEPLOY_RENDER` créé par erreur dans les *secrets* GitHub (les variables suffisent).
+2. Optionnel : désactiver l'auto-deploy Render si l'on souhaite que le workflow soit l'unique déclencheur.
+3. Préparer la soutenance avec `docs/DEMO-SOUTENANCE.md` (scénario minuté, plan B).
 
 ---
 
