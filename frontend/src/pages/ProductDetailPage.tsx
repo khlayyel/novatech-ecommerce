@@ -27,6 +27,8 @@ const ProductDetailPage = () => {
   const [related, setRelated] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState('');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -66,6 +68,22 @@ const ProductDetailPage = () => {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setLightboxOpen(false);
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [lightboxOpen]);
 
   const handleAdd = async () => {
     if (!product) return;
@@ -139,7 +157,18 @@ const ProductDetailPage = () => {
 
       <div className="product-detail__grid">
         <figure className="product-detail__media">
-          <img src={imageSrc(mainImage)} alt={product.name} />
+          <button
+            type="button"
+            className="product-detail__image-btn"
+            onClick={() => {
+              setZoom(1);
+              setLightboxOpen(true);
+            }}
+            aria-label={t('product.enlarge')}
+            title={t('product.enlarge')}
+          >
+            <img src={imageSrc(mainImage)} alt={product.name} />
+          </button>
           <figcaption className="product-detail__category">{product.category}</figcaption>
 
           {gallery.length > 1 && (
@@ -151,7 +180,10 @@ const ProductDetailPage = () => {
                   className={`product-gallery__thumb${mainImage === url ? ' is-active' : ''}`}
                   aria-label={`Voir l'image ${index + 1}`}
                   aria-pressed={mainImage === url}
-                  onClick={() => setActiveImage(url)}
+                  onClick={() => {
+                    setActiveImage(url);
+                    setZoom(1);
+                  }}
                 >
                   <img src={imageSrc(url)} alt="" />
                 </button>
@@ -230,6 +262,51 @@ const ProductDetailPage = () => {
             ))}
           </div>
         </section>
+      )}
+
+      {lightboxOpen && (
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('product.enlarge')}
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div className="lightbox__toolbar" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setZoom((current) => Math.max(1, Math.round((current - 0.25) * 100) / 100))}
+              aria-label={t('product.zoomOut')}
+              title={t('product.zoomOut')}
+            >
+              −
+            </button>
+            <span>{Math.round(zoom * 100)}%</span>
+            <button
+              type="button"
+              onClick={() => setZoom((current) => Math.min(3, Math.round((current + 0.25) * 100) / 100))}
+              aria-label={t('product.zoomIn')}
+              title={t('product.zoomIn')}
+            >
+              +
+            </button>
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(false)}
+              aria-label={t('common.close')}
+              title={t('common.close')}
+            >
+              ×
+            </button>
+          </div>
+          <img
+            className="lightbox__image"
+            style={{ transform: `scale(${zoom})` }}
+            src={imageSrc(mainImage)}
+            alt={product.name}
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );

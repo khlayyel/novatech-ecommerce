@@ -1528,7 +1528,7 @@ h2 {
 
 .footer__grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
   gap: 2rem;
   padding-block: 2.75rem;
 }
@@ -1537,7 +1537,17 @@ h2 {
   color: var(--muted);
   font-size: 0.92rem;
   margin-top: 1rem;
-  max-width: 30rem;
+}
+
+.footer__badge {
+  display: inline-block;
+  margin-top: 0.9rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .footer__title {
@@ -1789,6 +1799,73 @@ h2 {
 
 .product-gallery__thumb.is-active {
   border-color: var(--accent);
+}
+
+.product-detail__image-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: rgba(8, 12, 22, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+.lightbox__image {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s ease;
+  cursor: zoom-out;
+}
+
+.lightbox__toolbar {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.lightbox__toolbar button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lightbox__toolbar button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox__toolbar span {
+  min-width: 52px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .product-detail__category {

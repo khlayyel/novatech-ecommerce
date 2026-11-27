@@ -114,6 +114,10 @@ export const updateCategory = asyncHandler(async (req, res) => {
   }
 
   const previousName = category.name;
+  const previousImages = [
+    category.imageUrl,
+    ...(category.subcategoryImages ? [...category.subcategoryImages.values()] : [])
+  ].filter(Boolean);
   const name = req.body.name !== undefined ? normalizeName(req.body.name) : previousName;
   if (name.length < 2) {
     throw new ApiError(400, 'Le nom de la catégorie est requis (2 caractères minimum)');
@@ -141,6 +145,15 @@ export const updateCategory = asyncHandler(async (req, res) => {
     );
   }
   await category.save();
+
+  const nextImages = [
+    category.imageUrl,
+    ...(category.subcategoryImages ? [...category.subcategoryImages.values()] : [])
+  ].filter(Boolean);
+  const removedImages = previousImages.filter((url) => !nextImages.includes(url));
+  if (removedImages.length > 0) {
+    await deleteMediaByUrls(removedImages);
+  }
 
   if (name !== previousName) {
     await Product.updateMany({ category: previousName }, { $set: { category: name } });

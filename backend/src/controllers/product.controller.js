@@ -159,6 +159,11 @@ export const updateProduct = asyncHandler(async (req, res) => {
     data.imageUrls = data.imageUrl ? [String(data.imageUrl).trim()] : [];
   }
 
+  const existing = await Product.findById(id).select('imageUrl imageUrls');
+  if (!existing) {
+    throw new ApiError(404, 'Produit introuvable');
+  }
+
   const product = await Product.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
@@ -166,6 +171,13 @@ export const updateProduct = asyncHandler(async (req, res) => {
   });
   if (!product) {
     throw new ApiError(404, 'Produit introuvable');
+  }
+
+  const previousImages = [...(existing.imageUrls || []), existing.imageUrl].filter(Boolean);
+  const nextImages = [...(product.imageUrls || []), product.imageUrl].filter(Boolean);
+  const removedImages = previousImages.filter((url) => !nextImages.includes(url));
+  if (removedImages.length > 0) {
+    await deleteMediaByUrls(removedImages);
   }
 
   await logAdminAction(req, 'product.update', product.name, data);

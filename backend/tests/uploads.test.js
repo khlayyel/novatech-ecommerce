@@ -62,6 +62,56 @@ describe('Upload d\'images (admin)', () => {
 
     expect(res.statusCode).toBe(403);
   });
+
+  it('supprime immédiatement un média non référencé', async () => {
+    const admin = await loginAdmin(app);
+    const upload = await request(app)
+      .post('/api/admin/uploads')
+      .set(bearer(admin.body.token))
+      .send({ dataUrl: PNG });
+
+    const removed = await request(app)
+      .delete('/api/admin/uploads')
+      .set(bearer(admin.body.token))
+      .send({ url: upload.body.url });
+
+    expect(removed.statusCode).toBe(200);
+    expect(removed.body.deleted).toBe(true);
+
+    const media = await request(app).get(upload.body.url);
+    expect(media.statusCode).toBe(404);
+  });
+
+  it('protège un média encore utilisé par un produit', async () => {
+    const admin = await loginAdmin(app);
+    const upload = await request(app)
+      .post('/api/admin/uploads')
+      .set(bearer(admin.body.token))
+      .send({ dataUrl: PNG });
+
+    await request(app)
+      .post('/api/admin/products')
+      .set(bearer(admin.body.token))
+      .send({
+        name: 'Produit protégé',
+        description: 'Média référencé.',
+        price: 50,
+        category: 'Écrans',
+        stock: 2,
+        imageUrls: [upload.body.url]
+      });
+
+    const removed = await request(app)
+      .delete('/api/admin/uploads')
+      .set(bearer(admin.body.token))
+      .send({ url: upload.body.url });
+
+    expect(removed.statusCode).toBe(200);
+    expect(removed.body.deleted).toBe(false);
+
+    const media = await request(app).get(upload.body.url);
+    expect(media.statusCode).toBe(200);
+  });
 });
 
 describe('Images des produits', () => {
@@ -98,6 +148,27 @@ describe('Images des produits', () => {
       });
 
     expect(res.statusCode).toBe(400);
+  });
+
+  it('supprime les médias retirés lors d’une mise à jour', async () => {
+    const admin = await loginAdmin(app);
+
+    const first = await request(app).post('/api/admin/uploads').set(bearer(admin.body.token)).send({ dataUrl: PNG });
+    const second = await request(app).post('/api/admin/uploads').set(bearer(admin.body.token)).send({ dataUrl: PNG });
+
+    const created = await request(app)
+      .post('/api/admin/products')
+      .set(bearer(admin.body.token))
+      .send({ ...payload, imageUrls: [first.body.url, second.body.url] });
+
+    const updated = await request(app)
+      .put(`/api/admin/products/${created.body._id}`)
+      .set(bearer(admin.body.token))
+      .send({ imageUrls: [second.body.url] });
+
+    expect(updated.statusCode).toBe(200);
+    expect((await request(app).get(first.body.url)).statusCode).toBe(404);
+    expect((await request(app).get(second.body.url)).statusCode).toBe(200);
   });
 
   it('supprime les médias lorsque le produit est supprimé', async () => {

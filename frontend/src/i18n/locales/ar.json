@@ -43,7 +43,14 @@
     "tech": "دفع آمن 100%",
     "api": "توصيل متتبع",
     "stripe": "دعم 7/7",
-    "copyright": "© {year} NovaTech — جميع الحقوق محفوظة."
+    "copyright": "© {year} NovaTech — جميع الحقوق محفوظة.",
+    "help": "المساعدة",
+    "delivery": "التوصيل",
+    "returns": "الإرجاع",
+    "contact": "اتصل بنا",
+    "email": "contact@novatech.fr",
+    "hours": "الاثنين–الجمعة · 9–18",
+    "secure": "دفع آمن 100%"
   },
   "home": {
     "badge": "متجر عتاد معلوماتي",
@@ -85,7 +92,10 @@
     "perksStripe": "🔒 دفع آمن 100%",
     "perksTracking": "🚚 تتبع الطلب في الوقت الحقيقي",
     "perksReturns": "↩️ إرجاع خلال 30 يومًا",
-    "inStockCount": "{count} متوفر"
+    "inStockCount": "{count} متوفر",
+    "enlarge": "تكبير الصورة",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",

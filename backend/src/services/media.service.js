@@ -1,4 +1,6 @@
 import Media from '../models/Media.js';
+import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 
 const MEDIA_URL = /\/api\/media\/([a-f0-9]{24})/i;
 
@@ -21,3 +23,24 @@ export const deleteMediaByUrls = async (urls = []) => {
     await Media.deleteMany({ _id: { $in: ids } });
   }
 };
+
+/** Une image encore utilisée par un produit ou une famille ne doit pas être supprimée. */
+export const isMediaReferenced = async (url) => {
+  if (!url) return false;
+
+  const [product, categories] = await Promise.all([
+    Product.exists({ $or: [{ imageUrl: url }, { imageUrls: url }] }),
+    Category.find({}).select('imageUrl subcategoryImages').lean()
+  ]);
+
+  if (product) return true;
+
+  return categories.some(
+    (category) =>
+      category.imageUrl === url ||
+      Object.values(category.subcategoryImages || {}).includes(url)
+  );
+};
+
+/** Extrait l'identifiant de média d'une URL `/api/media/:id`. */
+export const mediaIdFromUrl = (url) => MEDIA_URL.exec(String(url ?? ''))?.[1] ?? null;

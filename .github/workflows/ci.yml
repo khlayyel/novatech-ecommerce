@@ -54,3 +54,18 @@ jobs:
 
       - name: Tests composants (Jest + React Testing Library)
         run: npm test
+
+  docker:
+    name: Docker (construction des images)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image API
+        run: docker build -f Dockerfile.backend -t novatech-api:ci .
+
+      - name: Build image frontend
+        run: >
+          docker build -f Dockerfile.frontend -t novatech-web:ci
+          --build-arg VITE_API_URL=http://localhost:5000/api
+          --build-arg VITE_STRIPE_PUBLIC_KEY=pk_test_ci .

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Media from '../models/Media.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../middleware/error.js';
+import { isMediaReferenced, mediaIdFromUrl } from '../services/media.service.js';
 
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -67,4 +68,25 @@ export const getMedia = asyncHandler(async (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.send(media.data);
+});
+
+/**
+ * DELETE /api/admin/uploads { url }
+ * Supprime immédiatement un média s'il n'est plus référencé par un produit
+ * ou une famille (sinon la suppression est différée à l'enregistrement).
+ */
+export const deleteMedia = asyncHandler(async (req, res) => {
+  const { url } = req.body ?? {};
+  const id = mediaIdFromUrl(url);
+
+  if (!id) {
+    throw new ApiError(400, 'URL de média invalide');
+  }
+
+  if (await isMediaReferenced(String(url))) {
+    return res.json({ deleted: false, reason: 'referenced' });
+  }
+
+  const result = await Media.deleteOne({ _id: id });
+  res.json({ deleted: result.deletedCount > 0 });
 });

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { uploadImage } from '../../api/admin';
+import { deleteMedia, uploadImage } from '../../api/admin';
 import { getErrorMessage } from '../../utils/request';
 import { imageSrc } from '../../utils/image';
 
@@ -66,7 +66,11 @@ const ImageDropzone = ({ value, onChange, max = 1, label = 'Images', hint }: Ima
     }
   };
 
-  const removeAt = (index: number) => onChange(value.filter((_, position) => position !== index));
+  const removeAt = (index: number) => {
+    const url = value[index];
+    onChange(value.filter((_, position) => position !== index));
+    if (url) void deleteMedia(url);
+  };
 
   const move = (from: number, to: number) => {
     if (to < 0 || to >= value.length || from === to) return;

@@ -43,7 +43,14 @@
     "tech": "Paiement 100 % sécurisé",
     "api": "Livraison suivie",
     "stripe": "Support 7j/7",
-    "copyright": "© {year} NovaTech — Tous droits réservés."
+    "copyright": "© {year} NovaTech — Tous droits réservés.",
+    "help": "Aide",
+    "delivery": "Livraison",
+    "returns": "Retours",
+    "contact": "Contact",
+    "email": "contact@novatech.fr",
+    "hours": "Lun–Ven · 9h–18h",
+    "secure": "Paiement 100 % sécurisé"
   },
   "home": {
     "badge": "Boutique de matériel informatique",
@@ -85,7 +92,10 @@
     "perksStripe": "🔒 Paiement 100 % sécurisé",
     "perksTracking": "🚚 Suivi de commande en temps réel",
     "perksReturns": "↩️ Retour sous 30 jours",
-    "inStockCount": "{count} en stock"
+    "inStockCount": "{count} en stock",
+    "enlarge": "Agrandir l’image",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière"
   },
   "auth": {
     "loginTitle": "Connexion",

@@ -43,7 +43,14 @@
     "tech": "100% secure payment",
     "api": "Tracked delivery",
     "stripe": "7-day support",
-    "copyright": "© {year} NovaTech — All rights reserved."
+    "copyright": "© {year} NovaTech — All rights reserved.",
+    "help": "Help",
+    "delivery": "Delivery",
+    "returns": "Returns",
+    "contact": "Contact",
+    "email": "contact@novatech.fr",
+    "hours": "Mon–Fri · 9am–6pm",
+    "secure": "100% secure payment"
   },
   "home": {
     "badge": "Computer hardware store",
@@ -85,7 +92,10 @@
     "perksStripe": "🔒 100% secure payment",
     "perksTracking": "🚚 Real-time order tracking",
     "perksReturns": "↩️ 30-day returns",
-    "inStockCount": "{count} in stock"
+    "inStockCount": "{count} in stock",
+    "enlarge": "Enlarge image",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out"
   },
   "auth": {
     "loginTitle": "Sign in",

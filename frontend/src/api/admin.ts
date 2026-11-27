@@ -148,3 +148,13 @@ export const upsertCategoryGroup = async (name: string, imageUrl: string): Promi
   const { data } = await api.put<CategoryGroup>('/admin/category-groups', { name, imageUrl });
   return data;
 };
+
+/** Supprime immédiatement un média non référencé (les médias utilisés sont ignorés). */
+export const deleteMedia = async (url: string): Promise<void> => {
+  if (!url.includes('/api/media/')) return;
+  try {
+    await api.delete('/admin/uploads', { data: { url } });
+  } catch {
+    // Suppression best-effort : le serveur protège les médias référencés.
+  }
+};
