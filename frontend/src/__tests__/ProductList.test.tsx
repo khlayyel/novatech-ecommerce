@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import ProductList from '../components/ProductList';
 import type { Product } from '../types';
 
@@ -28,17 +29,29 @@ const products: Product[] = [
   }
 ];
 
+interface ListProps {
+  products: Product[];
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+}
+
+const renderList = (props: ListProps) =>
+  render(
+    <MemoryRouter>
+      <ProductList {...props} onAdd={jest.fn()} />
+    </MemoryRouter>
+  );
+
 describe('ProductList', () => {
   it('affiche des cartes pendant le chargement (rendu conditionnel)', () => {
-    const { container } = render(
-      <ProductList products={[]} loading error={null} onAdd={jest.fn()} onRetry={jest.fn()} />
-    );
+    const { container } = renderList({ products: [], loading: true, error: null, onRetry: jest.fn() });
 
     expect(container.querySelectorAll('.skeleton-card')).toHaveLength(6);
   });
 
   it('affiche les cartes produits une fois chargées', () => {
-    render(<ProductList products={products} loading={false} error={null} onAdd={jest.fn()} onRetry={jest.fn()} />);
+    renderList({ products, loading: false, error: null, onRetry: jest.fn() });
 
     expect(screen.getByText('NovaBook Pro 14')).toBeInTheDocument();
     expect(screen.getByText('NovaKey TKL')).toBeInTheDocument();
@@ -46,9 +59,7 @@ describe('ProductList', () => {
 
   it('affiche l\'erreur avec un bouton Réessayer (gestion des erreurs API)', async () => {
     const onRetry = jest.fn();
-    render(
-      <ProductList products={[]} loading={false} error="Service indisponible" onAdd={jest.fn()} onRetry={onRetry} />
-    );
+    renderList({ products: [], loading: false, error: 'Service indisponible', onRetry });
 
     expect(screen.getByText('Impossible de charger le catalogue')).toBeInTheDocument();
     expect(screen.getByText('Service indisponible')).toBeInTheDocument();
@@ -58,7 +69,7 @@ describe('ProductList', () => {
   });
 
   it('affiche un état vide quand aucun produit ne correspond', () => {
-    render(<ProductList products={[]} loading={false} error={null} onAdd={jest.fn()} onRetry={jest.fn()} />);
+    renderList({ products: [], loading: false, error: null, onRetry: jest.fn() });
 
     expect(screen.getByText('Aucun produit ne correspond')).toBeInTheDocument();
   });

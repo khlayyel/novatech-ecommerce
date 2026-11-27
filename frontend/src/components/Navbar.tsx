@@ -29,6 +29,11 @@ const Navbar = () => {
           Mes commandes
         </NavLink>
       )}
+      {user?.role === 'admin' && (
+        <NavLink to="/admin" onClick={closeMenu} className={({ isActive }) => `nav-link nav-link--admin${isActive ? ' nav-link--active' : ''}`}>
+          Administration
+        </NavLink>
+      )}
     </>
   );
 
@@ -55,6 +60,7 @@ const Navbar = () => {
             <div className="navbar__user">
               <span className="navbar__welcome" title={user.email}>
                 {user.name}
+                {user.role === 'admin' && <em className="navbar__role">admin</em>}
               </span>
               <button type="button" className="button button--ghost button--sm" onClick={handleLogout}>
                 Déconnexion

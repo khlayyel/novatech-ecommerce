@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { formatPrice } from '../utils/format';
 import type { Product } from '../types';
@@ -22,8 +23,15 @@ const baseProduct: Product = {
 };
 
 describe('ProductCard', () => {
+  const renderCard = (product: Product, onAdd = jest.fn()) =>
+    render(
+      <MemoryRouter>
+        <ProductCard product={product} onAdd={onAdd} />
+      </MemoryRouter>
+    );
+
   it('affiche le nom, la description, le prix formaté et le stock', () => {
-    render(<ProductCard product={baseProduct} onAdd={jest.fn()} />);
+    renderCard(baseProduct);
 
     expect(screen.getByText('NovaGlide Pro')).toBeInTheDocument();
     expect(screen.getByText(/Souris sans fil 8000 DPI/)).toBeInTheDocument();
@@ -37,7 +45,7 @@ describe('ProductCard', () => {
 
   it('déclenche l\'ajout au panier au clic', async () => {
     const onAdd = jest.fn();
-    render(<ProductCard product={baseProduct} onAdd={onAdd} />);
+    renderCard(baseProduct, onAdd);
 
     await userEvent.click(screen.getByRole('button', { name: /Ajouter au panier/i }));
 
@@ -46,7 +54,7 @@ describe('ProductCard', () => {
   });
 
   it('désactive l\'ajout quand le produit est épuisé', () => {
-    render(<ProductCard product={{ ...baseProduct, stock: 0 }} onAdd={jest.fn()} />);
+    renderCard({ ...baseProduct, stock: 0 });
 
     // « Épuisé » apparaît sur le ruban ET dans l'indice de stock.
     expect(screen.getAllByText('Épuisé')).toHaveLength(2);
@@ -54,7 +62,7 @@ describe('ProductCard', () => {
   });
 
   it('signale un stock faible', () => {
-    render(<ProductCard product={{ ...baseProduct, stock: 3 }} onAdd={jest.fn()} />);
+    renderCard({ ...baseProduct, stock: 3 });
 
     expect(screen.getByText(/Plus que 3 en stock/)).toBeInTheDocument();
   });

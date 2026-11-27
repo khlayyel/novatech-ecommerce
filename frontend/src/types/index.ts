@@ -37,10 +37,13 @@ export interface Cart {
   items: CartItem[];
 }
 
+export type UserRole = 'customer' | 'admin';
+
 export interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
 }
 
 export interface AuthResponse {
@@ -68,6 +71,8 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   paidAt?: string | null;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
 }
 
 export interface CheckoutResponse {
@@ -75,4 +80,47 @@ export interface CheckoutResponse {
   clientSecret: string;
   totalAmount: number;
   trackingToken: string;
+}
+
+export interface ProductInput {
+  name: string;
+  description: string;
+  price: number;
+  category: Category | string;
+  stock: number;
+  imageUrl?: string;
+}
+
+export interface AdminOrderCustomer {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+export interface AdminOrder extends Order {
+  user?: AdminOrderCustomer | null;
+  sessionId?: string | null;
+}
+
+export interface AdminOrdersResponse {
+  orders: AdminOrder[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export interface AdminStats {
+  revenue: number;
+  paidOrders: number;
+  orders: {
+    total: number;
+    pending: number;
+    paid: number;
+    failed: number;
+    shipped: number;
+    delivered: number;
+  };
+  products: { total: number; lowStock: number };
+  users: number;
+  recentOrders: AdminOrder[];
 }

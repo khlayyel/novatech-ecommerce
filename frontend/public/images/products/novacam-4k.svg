@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="NovaCam 4K webcam">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef0fe"/><stop offset="1" stop-color="#e2e5fd"/>
+    </linearGradient>
+    <radialGradient id="lens" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#5b8def"/><stop offset="1" stop-color="#1d2740"/>
+    </radialGradient>
+  </defs>
+  <rect width="480" height="360" rx="24" fill="url(#bg)"/>
+  <ellipse cx="240" cy="284" rx="112" ry="12" fill="#0b1220" opacity="0.09"/>
+  <g>
+    <rect x="132" y="116" width="216" height="96" rx="34" fill="#131a2c"/>
+    <circle cx="240" cy="164" r="46" fill="#0b1220"/>
+    <circle cx="240" cy="164" r="34" fill="url(#lens)"/>
+    <circle cx="228" cy="152" r="10" fill="#ffffff" opacity="0.5"/>
+    <circle cx="296" cy="140" r="5" fill="#4f46e5"/>
+    <rect x="196" y="212" width="88" height="22" rx="10" fill="#1d2740"/>
+    <path d="M200 234h80l-14 44h-52z" fill="#1d2740"/>
+    <rect x="214" y="262" width="52" height="10" rx="5" fill="#4f46e5" opacity="0.8"/>
+  </g>
+</svg>

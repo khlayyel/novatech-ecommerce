@@ -7,7 +7,8 @@ import { ApiError } from '../middleware/error.js';
 const publicUser = (user) => ({
   id: user._id,
   name: user.name,
-  email: user.email
+  email: user.email,
+  role: user.role || 'customer'
 });
 
 /**

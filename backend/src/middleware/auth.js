@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import config from '../config/env.js';
+import User from '../models/User.js';
 import { ApiError } from './error.js';
 
 /** Signe un jeton JWT pour un utilisateur donné. */
@@ -52,4 +53,28 @@ export const optionalAuth = (req, _res, next) => {
     }
   }
   next();
+};
+
+/**
+ * Autorisation ADMIN : exige un jeton valide puis vérifie le rôle en base
+ * (le rôle n'est pas embarqué dans le jeton, ce qui évite un droit obsolète
+ * après une révocation).
+ */
+export const requireAdmin = (req, res, next) => {
+  requireAuth(req, res, async (err) => {
+    if (err) return next(err);
+    try {
+      const user = await User.findById(req.user.id).select('role');
+      if (!user) {
+        return next(new ApiError(401, 'Utilisateur introuvable'));
+      }
+      if (user.role !== 'admin') {
+        return next(new ApiError(403, 'Accès réservé aux administrateurs'));
+      }
+      req.user.role = user.role;
+      return next();
+    } catch (error) {
+      return next(error);
+    }
+  });
 };

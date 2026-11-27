@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Le mot de passe est requis'],
       minlength: [8, 'Le mot de passe doit contenir au moins 8 caractères'],
       select: false
+    },
+    role: {
+      type: String,
+      enum: ['customer', 'admin'],
+      default: 'customer'
     }
   },
   { timestamps: true }

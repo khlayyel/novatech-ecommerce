@@ -115,15 +115,21 @@ const OrderDetailPage = () => {
           <ol className={`timeline${failed ? ' timeline--failed' : ''}`}>
             {TIMELINE_STEPS.map((step, index) => {
               const state = index < currentStep ? 'done' : index === currentStep ? 'current' : 'upcoming';
+              const stepDate =
+                step.key === 'paid'
+                  ? order.paidAt
+                  : step.key === 'shipped'
+                    ? order.shippedAt
+                    : step.key === 'delivered'
+                      ? order.deliveredAt
+                      : null;
               return (
                 <li key={step.key} className={`timeline__step timeline__step--${state}`}>
                   <span className="timeline__icon" aria-hidden="true">{step.icon}</span>
                   <span className="timeline__text">
                     <strong>{step.label}</strong>
                     <small>
-                      {state === 'done' && step.key === 'paid' && order.paidAt
-                        ? formatDate(order.paidAt)
-                        : step.hint}
+                      {state !== 'upcoming' && stepDate ? formatDate(stepDate) : step.hint}
                     </small>
                   </span>
                 </li>

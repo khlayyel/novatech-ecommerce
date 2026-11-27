@@ -1,5 +1,6 @@
 import request from 'supertest';
 import Product from '../src/models/Product.js';
+import User from '../src/models/User.js';
 
 /** Email unique pour éviter les collisions entre tests. */
 export const uniqueEmail = () => `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@novatech.test`;
@@ -38,3 +39,11 @@ export const createCatalog = () =>
     createProduct({ name: 'Souris Gamma', price: 89, category: 'Périphériques', stock: 3 }),
     createProduct({ name: 'PC Delta', price: 1500, category: 'Ordinateurs', stock: 2 })
   ]);
+
+/** Crée un administrateur en base puis renvoie sa réponse de connexion (token inclus). */
+export const loginAdmin = async (app) => {
+  const email = uniqueEmail();
+  const password = 'Password123!';
+  await User.create({ name: 'Administrateur Test', email, password, role: 'admin' });
+  return request(app).post('/api/auth/login').send({ email, password });
+};

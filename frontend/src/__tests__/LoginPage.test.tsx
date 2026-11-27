@@ -43,7 +43,7 @@ describe('LoginPage', () => {
   it('connecte l\'utilisateur, stocke le jeton et redirige', async () => {
     mockedAuthApi.login.mockResolvedValue({
       token: 'jwt-test-123',
-      user: { id: 'u1', name: 'Démo', email: 'demo@novatech.fr' }
+      user: { id: 'u1', name: 'Démo', email: 'demo@novatech.fr', role: 'customer' }
     });
 
     renderPage();

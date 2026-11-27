@@ -1673,3 +1673,345 @@ h2 {
     scroll-behavior: auto;
   }
 }
+
+/* ── 16. Fiche produit + administration ──────────────────────────── */
+
+.navbar__role {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.42rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.nav-link--admin {
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+
+.field > span {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.block {
+  display: block;
+}
+
+.mono {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+/* ── Fil d'Ariane ──────────────────────────────────────────────── */
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.breadcrumb a {
+  color: var(--accent-deep);
+}
+
+.breadcrumb__current {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ── Fiche produit ─────────────────────────────────────────────── */
+.product-detail {
+  padding-block: 1.5rem 3rem;
+}
+
+.product-detail__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.product-detail__media {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.product-detail__media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.product-detail__category {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.product-detail__info h1 {
+  font-size: clamp(1.6rem, 2.4vw, 2.3rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.product-detail__price {
+  margin-top: 0.8rem;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.product-detail__description {
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+.product-detail__buy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.product-detail__perks {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  padding: 1rem 1.1rem;
+  list-style: none;
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.related {
+  margin-top: 3rem;
+}
+
+/* ── Administration ────────────────────────────────────────────── */
+.admin-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-tabs__link {
+  padding: 0.7rem 1rem;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.admin-tabs__link:hover {
+  color: var(--ink);
+}
+
+.admin-tabs__link--active {
+  color: var(--accent-deep);
+  border-bottom-color: var(--accent);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stat-card__value {
+  font-size: 1.7rem;
+  letter-spacing: -0.02em;
+}
+
+.stat-card__hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.banner--warn {
+  margin-bottom: 1.25rem;
+  background: var(--warn-soft);
+  color: var(--warn);
+  border: 1px solid rgba(180, 83, 9, 0.2);
+}
+
+.banner--warn a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-form {
+  margin-bottom: 1.5rem;
+}
+
+.admin-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-form__wide {
+  grid-column: 1 / -1;
+}
+
+.admin-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+textarea.input {
+  min-height: 90px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table-wrapper.card {
+  padding: 0;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.admin-table th {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(79, 70, 229, 0.03);
+}
+
+.admin-product__cell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 200px;
+}
+
+.admin-product__cell img {
+  width: 44px;
+  height: 33px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  object-fit: cover;
+}
+
+.admin-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.button--danger-ghost {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid rgba(220, 38, 38, 0.28);
+}
+
+.button--danger-ghost:not(:disabled):hover {
+  background: var(--danger-soft);
+}
+
+@media (max-width: 860px) {
+  .product-detail__grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-form__grid {
+    grid-template-columns: 1fr;
+  }
+}

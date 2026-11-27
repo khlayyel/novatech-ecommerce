@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="NovaBook Studio 16 ordinateur portable">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef0fe"/><stop offset="1" stop-color="#e2e5fd"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" rx="24" fill="url(#bg)"/>
+  <ellipse cx="240" cy="292" rx="158" ry="13" fill="#0b1220" opacity="0.09"/>
+  <g>
+    <rect x="96" y="86" width="288" height="174" rx="14" fill="#131a2c"/>
+    <rect x="108" y="98" width="264" height="150" rx="8" fill="url(#screen)"/>
+    <rect x="128" y="120" width="120" height="10" rx="5" fill="#ffffff" opacity="0.55"/>
+    <rect x="128" y="142" width="180" height="8" rx="4" fill="#ffffff" opacity="0.28"/>
+    <rect x="128" y="158" width="150" height="8" rx="4" fill="#ffffff" opacity="0.28"/>
+    <rect x="128" y="186" width="72" height="42" rx="8" fill="#ffffff" opacity="0.16"/>
+    <rect x="208" y="186" width="72" height="42" rx="8" fill="#ffffff" opacity="0.16"/>
+    <rect x="286" y="186" width="62" height="42" rx="8" fill="#ffffff" opacity="0.1"/>
+    <path d="M78 260h324l16 22a8 8 0 0 1-7 12H69a8 8 0 0 1-7-12z" fill="#1d2740"/>
+    <rect x="188" y="268" width="104" height="8" rx="4" fill="#0b1220"/>
+  </g>
+</svg>

@@ -118,13 +118,129 @@ const PRODUCTS = [
     category: "Impression",
     stock: 10,
     imageUrl: "/images/products/novaprint-laser.svg"
+  },
+  {
+    name: "NovaBook Studio 16",
+    description:
+      "Station de travail mobile 16 pouces pour la création : 14 cœurs, 32 Go de mémoire unifiée et écran mini-LED calibré d'usine. Silencieuse même en export 8K.",
+    price: 2199,
+    category: "Ordinateurs",
+    stock: 7,
+    imageUrl: "/images/products/novabook-studio-16.svg"
+  },
+  {
+    name: "Titan Mini — Mini PC",
+    description:
+      "Mini PC de 0,6 litre avec processeur 8 cœurs et 16 Go de mémoire. Se fixe derrière un écran et suffit largement au bureautique exigeant et au montage léger.",
+    price: 949,
+    category: "Ordinateurs",
+    stock: 14,
+    imageUrl: "/images/products/titan-mini.svg"
+  },
+  {
+    name: 'ClearView 24" FHD',
+    description:
+      "Écran 24 pouces Full HD à dalle IPS, 100 Hz et bords fins sur trois côtés. Pied compact et fixation VESA pour les petits bureaux.",
+    price: 199,
+    category: "Écrans",
+    stock: 25,
+    imageUrl: "/images/products/clearview-24-fhd.svg"
+  },
+  {
+    name: "NovaPad XL — Tapis de bureau",
+    description:
+      "Tapis de bureau en tissu technique 90 × 40 cm, base antidérapante et bords cousus. Surface optimisée pour les capteurs optiques et les déplacements fluides.",
+    price: 49,
+    category: "Périphériques",
+    stock: 60,
+    imageUrl: "/images/products/novapad-xl.svg"
+  },
+  {
+    name: "NovaCam 4K — Webcam",
+    description:
+      "Webcam 4K avec autofocus, correction automatique de la lumière et double micro stéréo. Cache de confidentialité intégré et fixation magnétique.",
+    price: 119,
+    category: "Périphériques",
+    stock: 35,
+    imageUrl: "/images/products/novacam-4k.svg"
+  },
+  {
+    name: "NovaDock USB-C — Station d'accueil",
+    description:
+      "Station d'accueil 11-en-1 : double sortie HDMI 4K, Ethernet 2,5 Gb/s, lecteur SD et charge 100 W. Un seul câble pour tout connecter.",
+    price: 179,
+    category: "Périphériques",
+    stock: 20,
+    imageUrl: "/images/products/novadock-usbc.svg"
+  },
+  {
+    name: "NovaRAM 32 Go DDR5",
+    description:
+      "Kit mémoire DDR5 32 Go (2 × 16 Go) à 6 000 MHz avec profils EXPO et dissipateur bas profil. Stable et compatible avec les cartes mères récentes.",
+    price: 149,
+    category: "Composants",
+    stock: 40,
+    imageUrl: "/images/products/novaram-32go.svg"
+  },
+  {
+    name: "NovaCore i9 — Processeur",
+    description:
+      "Processeur 24 cœurs à 5,8 GHz de pointe, 36 Mo de cache et PCIe 5.0. Pensé pour le rendu, la compilation et le jeu à haut framerate.",
+    price: 629,
+    category: "Composants",
+    stock: 4,
+    imageUrl: "/images/products/novacore-i9.svg"
+  },
+  {
+    name: "NovaPower 850W — Alimentation",
+    description:
+      "Bloc d'alimentation 850 W 80+ Gold entièrement modulaire, ventilateur semi-passif et protections complètes. Silencieux au repos.",
+    price: 139,
+    category: "Composants",
+    stock: 18,
+    imageUrl: "/images/products/novapower-850w.svg"
+  },
+  {
+    name: "NovaSwitch 8 ports — Gigabit",
+    description:
+      "Switch réseau 8 ports Gigabit au format métal, sans ventilateur. Priorisation du trafic et alimentation externe compacte.",
+    price: 89,
+    category: "Réseau",
+    stock: 22,
+    imageUrl: "/images/products/novaswitch-8.svg"
+  },
+  {
+    name: "NovaMesh Pro — Pack 2",
+    description:
+      "Système WiFi maillé tri-bande pour 350 m² : deux satellites, roaming transparent et application de gestion. Couvre les maisons à murs épais.",
+    price: 249,
+    category: "Réseau",
+    stock: 16,
+    imageUrl: "/images/products/novamesh-pro.svg"
+  },
+  {
+    name: "NovaScan — Scanner à plat",
+    description:
+      "Scanner à plat A4 recto-verso avec chargeur automatique de 30 pages, 40 ppm et numérisation vers le cloud. Pilotes sans installation.",
+    price: 229,
+    category: "Impression",
+    stock: 9,
+    imageUrl: "/images/products/novascan.svg"
   }
 ];
 
 const DEMO_USER = {
   name: "Utilisateur Démo",
   email: "demo@novatech.fr",
-  password: "Demo1234!"
+  password: "Demo1234!",
+  role: "customer"
+};
+
+const ADMIN_USER = {
+  name: "Administrateur NovaTech",
+  email: "admin@novatech.fr",
+  password: "Admin1234!",
+  role: "admin"
 };
 
 const seed = async () => {
@@ -142,6 +258,18 @@ const seed = async () => {
       console.log(`✓ Compte démo créé : ${DEMO_USER.email} (mot de passe : ${DEMO_USER.password})`);
     } else {
       console.log("• Compte démo déjà présent.");
+    }
+
+    const existingAdmin = await User.findOne({ email: ADMIN_USER.email });
+    if (!existingAdmin) {
+      await User.create(ADMIN_USER);
+      console.log(`✓ Compte admin créé : ${ADMIN_USER.email} (mot de passe : ${ADMIN_USER.password})`);
+    } else if (existingAdmin.role !== 'admin') {
+      existingAdmin.role = 'admin';
+      await existingAdmin.save();
+      console.log(`✓ Rôle admin accordé à : ${ADMIN_USER.email}`);
+    } else {
+      console.log("• Compte admin déjà présent.");
     }
 
     await mongoose.connection.close();
