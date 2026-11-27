@@ -35,24 +35,24 @@
     "cartLabel": "السلة ({count} عنصر)"
   },
   "footer": {
-    "tagline": "عتاد معلوماتي بكل ثقة. دفع آمن عبر Stripe وتتبع الطلبات في الوقت الحقيقي.",
+    "tagline": "عتاد معلوماتي بكل ثقة. دفع آمن وتتبع الطلبات في الوقت الحقيقي.",
     "shop": "المتجر",
     "cart": "سلتي",
     "tracking": "تتبع الطلب",
-    "project": "المشروع",
-    "tech": "React + TypeScript + Vite",
-    "api": "Node.js + Express + MongoDB",
-    "stripe": "Stripe — مدفوعات في وضع الاختبار",
-    "copyright": "© {year} NovaTech — مشروع أكاديمي (ورشة تجارة إلكترونية متكاملة). لا توجد مبيعات حقيقية."
+    "project": "التزاماتنا",
+    "tech": "دفع آمن 100%",
+    "api": "توصيل متتبع",
+    "stripe": "دعم 7/7",
+    "copyright": "© {year} NovaTech — جميع الحقوق محفوظة."
   },
   "home": {
-    "badge": "ورشة متكاملة · React · Node.js · MongoDB · Stripe",
+    "badge": "متجر عتاد معلوماتي",
     "titleStart": "عتاد معلوماتي،",
     "titleHighlight": "بكل ثقة.",
-    "subtitle": "حواسيب وشاشات وملحقات ومكوّنات مختارة بعناية. أضف إلى السلة، وادفع بأمان عبر Stripe، وتابع طلبك في الوقت الحقيقي.",
+    "subtitle": "حواسيب وشاشات وملحقات ومكوّنات مختارة بعناية. أضف إلى السلة، وادفع بأمان، وتابع طلبك في الوقت الحقيقي.",
     "discover": "تصفح الكتالوج",
     "viewCart": "عرض سلتي",
-    "trustStripe": "🔒 دفع آمن عبر Stripe",
+    "trustStripe": "🔒 دفع آمن 100%",
     "trustTracking": "📦 تتبع الطلب مباشرة",
     "trustGuest": "👤 بحساب أو بدون حساب",
     "catalogTitle": "كتالوجنا",
@@ -82,7 +82,7 @@
     "notFoundMessage": "هذا المنتج غير موجود أو تمت إزالته من الكتالوج.",
     "added": "تمت إضافة {count} × {name} إلى السلة.",
     "notAdded": "تعذر الإضافة إلى السلة.",
-    "perksStripe": "🔒 دفع آمن عبر Stripe",
+    "perksStripe": "🔒 دفع آمن 100%",
     "perksTracking": "🚚 تتبع الطلب في الوقت الحقيقي",
     "perksReturns": "↩️ إرجاع خلال 30 يومًا",
     "inStockCount": "{count} متوفر"

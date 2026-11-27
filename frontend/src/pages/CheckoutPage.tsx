@@ -43,7 +43,9 @@ const CheckoutPage = () => {
       setError(null);
       try {
         if (!STRIPE_PUBLIC_KEY) {
-          throw new Error('Stripe n\'est pas configuré : renseignez VITE_STRIPE_PUBLIC_KEY dans frontend/.env.');
+          // Détail technique réservé à la console ; message neutre pour l'utilisateur.
+          console.error('Clé publique de paiement absente (frontend/.env).');
+          throw new Error('Le paiement est momentanément indisponible.');
         }
         const data = await checkout();
         if (cancelled) return;

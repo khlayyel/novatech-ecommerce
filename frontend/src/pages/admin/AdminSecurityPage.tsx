@@ -20,14 +20,14 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const CONTROLS = [
-  { title: 'Mots de passe', detail: 'Hachage bcrypt (10 rounds), champ jamais renvoyé par l’API.' },
-  { title: 'Authentification', detail: 'JWT signé, expiration 7 jours, révocation par relecture du rôle en base.' },
-  { title: 'Autorisation', detail: 'Middleware requireAdmin, réponses 401/403 explicites.' },
-  { title: 'En-têtes HTTP', detail: 'Helmet (CSP, no-sniff, frameguard) sur chaque réponse.' },
-  { title: 'Limitation de débit', detail: 'Auth 30 req/15 min, checkout 10 req/15 min par IP.' },
-  { title: 'Paiement', detail: 'Montants recalculés serveur, webhook à signature HMAC vérifiée.' },
-  { title: 'Entrées', detail: 'Validation Mongoose, listes blanches de champs, anti-injection NoSQL.' },
-  { title: 'CORS', detail: 'Origines autorisées limitées à la boutique déployée et au poste local.' }
+  { title: 'Mots de passe', detail: 'Chiffrement robuste ; le mot de passe n’est jamais renvoyé par le serveur.' },
+  { title: 'Authentification', detail: 'Session signée avec expiration automatique.' },
+  { title: 'Autorisation', detail: 'Accès administrateur vérifié à chaque requête.' },
+  { title: 'En-têtes HTTP', detail: 'Réponses protégées contre l’injection et le détournement de contenu.' },
+  { title: 'Tentatives répétées', detail: 'Blocage temporaire après plusieurs essais de connexion ou de paiement.' },
+  { title: 'Paiement', detail: 'Montants recalculés côté serveur et confirmation signée.' },
+  { title: 'Données', detail: 'Validation stricte des entrées et champs modifiables limités.' },
+  { title: 'Origines autorisées', detail: 'Seules les adresses de la boutique peuvent appeler le service.' }
 ];
 
 /** Sécurité : posture de l'API et journal d'audit paginé. */
@@ -119,7 +119,7 @@ const AdminSecurityPage = () => {
     <div className="admin-panel">
       <Panel
         title="Contrôles de sécurité actifs"
-        subtitle="API Express + MongoDB"
+        subtitle="Protection de la boutique"
         storageKey="security-controls"
       >
         <ul className="security-grid">

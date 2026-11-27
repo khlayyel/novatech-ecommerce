@@ -11,7 +11,7 @@ import type { Order } from '../types';
 /** Étapes du suivi, dans l'ordre chronologique de la vie d'une commande. */
 const TIMELINE_STEPS = [
   { key: 'pending', label: 'Commande passée', icon: '🧾', hint: 'En attente du paiement' },
-  { key: 'paid', label: 'Paiement confirmé', icon: '💳', hint: 'Paiement accepté par Stripe' },
+  { key: 'paid', label: 'Paiement confirmé', icon: '💳', hint: 'Paiement accepté' },
   { key: 'shipped', label: 'Expédition', icon: '🚚', hint: 'Colis pris en charge' },
   { key: 'delivered', label: 'Livraison', icon: '🏠', hint: 'Colis livré' }
 ];
@@ -143,8 +143,8 @@ const OrderDetailPage = () => {
               <dd>{formatDate(order.createdAt)}</dd>
             </div>
             <div>
-              <dt>Paiement</dt>
-              <dd>{order.stripePaymentIntentId ? `${order.stripePaymentIntentId.slice(0, 14)}…` : '—'}</dd>
+              <dt>Moyen de paiement</dt>
+              <dd>Carte bancaire</dd>
             </div>
             <div>
               <dt>Montant</dt>

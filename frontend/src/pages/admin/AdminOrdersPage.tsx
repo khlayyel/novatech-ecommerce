@@ -175,8 +175,8 @@ const AdminOrdersPage = () => {
 
       <dl className="order-meta">
         <div>
-          <dt>Paiement</dt>
-          <dd>{order.stripePaymentIntentId ? `${order.stripePaymentIntentId.slice(0, 18)}…` : '—'}</dd>
+          <dt>Moyen de paiement</dt>
+          <dd>Carte bancaire</dd>
         </div>
         <div>
           <dt>Payée le</dt>

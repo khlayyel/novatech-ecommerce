@@ -74,8 +74,8 @@ const CheckoutForm = ({ orderId, totalAmount, onDone }: CheckoutFormProps) => {
       </button>
 
       <p className="muted small payment-form__note">
-        🔒 Paiement sécurisé par Stripe (mode test). Carte de test : 4242 4242 4242 4242 —
-        n'importe quelle date future, CVC 3 chiffres.
+        🔒 Paiement sécurisé. Carte de test : 4242 4242 4242 4242 —
+        date future, CVC au choix.
       </p>
     </form>
   );

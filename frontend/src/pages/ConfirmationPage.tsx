@@ -110,7 +110,7 @@ const ConfirmationPage = () => {
           <ul className="next-steps">
             <li>📦 Suivez l'état de votre commande à tout moment.</li>
             <li>🔐 Connectez-vous avec votre compte pour retrouver votre historique complet.</li>
-            <li>💳 Le paiement est traité par Stripe — aucune donnée bancaire ne transite par nos serveurs.</li>
+            <li>💳 Le paiement est traité de façon sécurisée — aucune donnée bancaire ne transite par nos serveurs.</li>
           </ul>
           <div className="confirmation__actions">
             <Link to={`/orders/${order._id}`} className="button button--primary">

@@ -134,7 +134,7 @@ const CartPage = () => {
           </button>
 
           <p className="muted small cart-summary__note">
-            🔒 Paiement sécurisé par Stripe — en mode test, utilisez la carte 4242&nbsp;4242&nbsp;4242&nbsp;4242.
+            🔒 Paiement sécurisé — carte de test : 4242 4242 4242 4242.
           </p>
         </aside>
       </div>

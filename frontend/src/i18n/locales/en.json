@@ -35,24 +35,24 @@
     "cartLabel": "Cart ({count} item(s))"
   },
   "footer": {
-    "tagline": "Computer hardware, with confidence. Secure Stripe payment and real-time order tracking.",
+    "tagline": "Computer hardware, with confidence. Secure payment and real-time order tracking.",
     "shop": "Shop",
     "cart": "My cart",
     "tracking": "Order tracking",
-    "project": "Project",
-    "tech": "React + TypeScript + Vite",
-    "api": "Node.js + Express + MongoDB",
-    "stripe": "Stripe — test-mode payments",
-    "copyright": "© {year} NovaTech — Academic project (fullstack e-commerce workshop). No real sales."
+    "project": "Our commitments",
+    "tech": "100% secure payment",
+    "api": "Tracked delivery",
+    "stripe": "7-day support",
+    "copyright": "© {year} NovaTech — All rights reserved."
   },
   "home": {
-    "badge": "Fullstack workshop · React · Node.js · MongoDB · Stripe",
+    "badge": "Computer hardware store",
     "titleStart": "Computer hardware,",
     "titleHighlight": "with confidence.",
-    "subtitle": "Laptops, monitors, peripherals and components carefully selected. Add to cart, pay securely with Stripe and track your order in real time.",
+    "subtitle": "Laptops, monitors, peripherals and components carefully selected. Add to cart, pay securely and track your order in real time.",
     "discover": "Browse the catalog",
     "viewCart": "View my cart",
-    "trustStripe": "🔒 Secure Stripe payment",
+    "trustStripe": "🔒 100% secure payment",
     "trustTracking": "📦 Live order tracking",
     "trustGuest": "👤 With or without an account",
     "catalogTitle": "Our catalog",
@@ -82,7 +82,7 @@
     "notFoundMessage": "This product does not exist or was removed from the catalog.",
     "added": "{count} × {name} added to cart.",
     "notAdded": "Unable to add to cart.",
-    "perksStripe": "🔒 Secure Stripe payment",
+    "perksStripe": "🔒 100% secure payment",
     "perksTracking": "🚚 Real-time order tracking",
     "perksReturns": "↩️ 30-day returns",
     "inStockCount": "{count} in stock"

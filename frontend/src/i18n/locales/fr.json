@@ -35,24 +35,24 @@
     "cartLabel": "Panier ({count} article(s))"
   },
   "footer": {
-    "tagline": "Le matériel informatique, en toute confiance. Paiement sécurisé par Stripe, commandes suivies en temps réel.",
+    "tagline": "Le matériel informatique, en toute confiance. Paiement sécurisé et commandes suivies en temps réel.",
     "shop": "Boutique",
     "cart": "Mon panier",
     "tracking": "Suivi de commande",
-    "project": "Projet",
-    "tech": "React + TypeScript + Vite",
-    "api": "Node.js + Express + MongoDB",
-    "stripe": "Stripe — paiements en mode test",
-    "copyright": "© {year} NovaTech — Projet académique (workshop e-commerce fullstack). Aucune vente réelle."
+    "project": "Nos engagements",
+    "tech": "Paiement 100 % sécurisé",
+    "api": "Livraison suivie",
+    "stripe": "Support 7j/7",
+    "copyright": "© {year} NovaTech — Tous droits réservés."
   },
   "home": {
-    "badge": "Workshop fullstack · React · Node.js · MongoDB · Stripe",
+    "badge": "Boutique de matériel informatique",
     "titleStart": "Le matériel informatique,",
     "titleHighlight": "en toute confiance.",
-    "subtitle": "Ordinateurs, écrans, périphériques et composants sélectionnés avec soin. Ajoutez au panier, payez de façon sécurisée avec Stripe et suivez votre commande en temps réel.",
+    "subtitle": "Ordinateurs, écrans, périphériques et composants sélectionnés avec soin. Ajoutez au panier, payez en toute sécurité et suivez votre commande en temps réel.",
     "discover": "Découvrir le catalogue",
     "viewCart": "Voir mon panier",
-    "trustStripe": "🔒 Paiement sécurisé Stripe",
+    "trustStripe": "🔒 Paiement 100 % sécurisé",
     "trustTracking": "📦 Suivi de commande en direct",
     "trustGuest": "👤 Sans compte ou avec compte",
     "catalogTitle": "Notre catalogue",
@@ -82,7 +82,7 @@
     "notFoundMessage": "Ce produit n'existe pas ou a été retiré du catalogue.",
     "added": "{count} × {name} ajouté(s) au panier.",
     "notAdded": "Impossible d'ajouter au panier.",
-    "perksStripe": "🔒 Paiement sécurisé par Stripe",
+    "perksStripe": "🔒 Paiement 100 % sécurisé",
     "perksTracking": "🚚 Suivi de commande en temps réel",
     "perksReturns": "↩️ Retour sous 30 jours",
     "inStockCount": "{count} en stock"

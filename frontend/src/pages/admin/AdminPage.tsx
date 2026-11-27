@@ -165,7 +165,7 @@ const AdminPage = () => {
         </main>
 
         <footer className="admin-footer">
-          NovaTech Admin — React · Node.js · MongoDB · Stripe
+          NovaTech Admin
         </footer>
       </div>
     </div>
