@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import EmptyState from '../../components/EmptyState';
+import DataTable from '../../components/ui/DataTable';
+import type { Column } from '../../components/ui/DataTable';
+import Panel from '../../components/ui/Panel';
 import Spinner from '../../components/Spinner';
 import * as productsApi from '../../api/products';
 import {
@@ -37,7 +39,7 @@ const EMPTY_FORM: ProductForm = {
   imageUrl: ''
 };
 
-/** Gestion du catalogue : recherche, création, modification et suppression. */
+/** Gestion du catalogue : filtres repliables, tableau triable et paginé, CRUD. */
 const AdminProductsPage = () => {
   const { showToast } = useToast();
 
@@ -58,7 +60,7 @@ const AdminProductsPage = () => {
     setError(null);
     try {
       const [catalog, tree] = await Promise.all([
-        productsApi.listProducts({ limit: 48, sort: 'recent' }),
+        productsApi.listProducts({ limit: 200, sort: 'recent' }),
         listCategories()
       ]);
       setProducts(catalog.products);
@@ -182,6 +184,83 @@ const AdminProductsPage = () => {
     }
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await downloadCsv('/admin/export/products.csv', 'novatech-produits.csv');
+      showToast('Export du catalogue téléchargé.', 'success');
+    } catch (err) {
+      showToast(getErrorMessage(err, 'Export impossible.'), 'error');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const columns: Column<Product>[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        label: 'Produit',
+        sortValue: (product) => product.name,
+        render: (product) => (
+          <div className="admin-product__cell">
+            <img src={product.imageUrl} alt="" />
+            <span>
+              {product.name}
+              {product.subcategory && <small className="muted block">{product.subcategory}</small>}
+            </span>
+          </div>
+        )
+      },
+      {
+        key: 'category',
+        label: 'Famille',
+        sortValue: (product) => String(product.category)
+      },
+      {
+        key: 'price',
+        label: 'Prix',
+        align: 'right',
+        sortValue: (product) => product.price,
+        render: (product) => formatPrice(product.price)
+      },
+      {
+        key: 'stock',
+        label: 'Stock',
+        align: 'right',
+        sortValue: (product) => product.stock,
+        render: (product) => (
+          <span className={`stock-hint ${product.stock === 0 ? 'stock-hint--out' : product.stock <= 5 ? 'stock-hint--low' : ''}`}>
+            {product.stock}
+          </span>
+        )
+      },
+      {
+        key: 'actions',
+        label: 'Actions',
+        align: 'right',
+        sortable: false,
+        render: (product) => (
+          <div className="admin-row-actions">
+            <button type="button" className="button button--ghost button--sm" onClick={() => openEdit(product)}>
+              Modifier
+            </button>
+            <button
+              type="button"
+              className="button button--danger-ghost button--sm"
+              onClick={() => handleDelete(product)}
+              disabled={deletingId === product._id}
+            >
+              {deletingId === product._id ? 'Suppression…' : 'Supprimer'}
+            </button>
+          </div>
+        )
+      }
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [deletingId, editing]
+  );
+
   if (loading && products.length === 0) {
     return (
       <div className="page-center">
@@ -192,213 +271,174 @@ const AdminProductsPage = () => {
 
   if (error) {
     return (
-      <EmptyState
-        title="Catalogue indisponible"
-        message={error}
-        icon="⚠️"
-        action={
-          <button type="button" className="button button--primary" onClick={load}>
-            Réessayer
-          </button>
-        }
-      />
+      <Panel title="Catalogue indisponible" storageKey="products-error">
+        <p className="muted">{error}</p>
+        <button type="button" className="button button--primary" onClick={load}>
+          Réessayer
+        </button>
+      </Panel>
     );
   }
 
   return (
     <div className="admin-panel">
-      <div className="admin-toolbar">
-        <input
-          type="search"
-          className="input"
-          placeholder="Rechercher un produit, une famille…"
-          aria-label="Rechercher un produit"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-        <div className="admin-toolbar__actions">
+      <Panel
+        title="Filtres"
+        subtitle="Recherche par nom, famille ou sous-famille"
+        storageKey="products-filters"
+        actions={
           <span className="muted small">
             {filtered.length} / {products.length} produit(s)
           </span>
-          <button
-            type="button"
-            className="button button--outline"
-            disabled={exporting}
-            onClick={async () => {
-              setExporting(true);
-              try {
-                await downloadCsv('/admin/export/products.csv', 'novatech-produits.csv');
-                showToast('Export du catalogue téléchargé.', 'success');
-              } catch (err) {
-                showToast(getErrorMessage(err, 'Export impossible.'), 'error');
-              } finally {
-                setExporting(false);
-              }
-            }}
-          >
-            {exporting ? 'Export…' : 'Exporter CSV'}
-          </button>
-          <button type="button" className="button button--primary" onClick={openCreate}>
-            + Nouveau produit
-          </button>
+        }
+      >
+        <div className="filter-grid">
+          <label className="field">
+            <span>Recherche</span>
+            <input
+              type="search"
+              className="input"
+              placeholder="NovaBook, Écrans, Portables…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
         </div>
-      </div>
+      </Panel>
+
+      <Panel
+        title="Catalogue"
+        subtitle="Tri par colonne, pagination et export"
+        storageKey="products-table"
+        bodyClassName="panel__body--flush"
+        actions={
+          <>
+            <button type="button" className="button button--outline button--sm" onClick={handleExport} disabled={exporting}>
+              {exporting ? 'Export…' : 'Exporter CSV'}
+            </button>
+            <button type="button" className="button button--primary button--sm" onClick={openCreate}>
+              + Nouveau produit
+            </button>
+          </>
+        }
+      >
+        <DataTable
+          columns={columns}
+          rows={filtered}
+          rowKey={(product) => product._id}
+          pageSizeKey="admin-products"
+          emptyLabel="Aucun produit ne correspond à cette recherche."
+        />
+      </Panel>
 
       {formOpen && (
-        <form className="card admin-form" onSubmit={handleSubmit}>
-          <div className="card__head">
-            <h2 className="card__title">{editing ? 'Modifier le produit' : 'Nouveau produit'}</h2>
+        <Panel
+          title={editing ? 'Modifier le produit' : 'Nouveau produit'}
+          subtitle={editing ? editing.name : 'Renseignez les informations du produit'}
+          storageKey="products-form"
+          actions={
             <button type="button" className="button button--ghost button--sm" onClick={closeForm}>
-              Annuler
+              Fermer
             </button>
-          </div>
+          }
+        >
+          <form onSubmit={handleSubmit}>
+            <div className="admin-form__grid">
+              <label className="field">
+                <span>Nom</span>
+                <input
+                  className="input"
+                  value={form.name}
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
+                  required
+                  maxLength={120}
+                />
+              </label>
 
-          <div className="admin-form__grid">
-            <label className="field">
-              <span>Nom</span>
-              <input
-                className="input"
-                value={form.name}
-                onChange={(event) => setForm({ ...form, name: event.target.value })}
-                required
-                maxLength={120}
-              />
-            </label>
+              <label className="field">
+                <span>Famille</span>
+                <select
+                  className="input input--select"
+                  value={form.category}
+                  onChange={(event) => setForm({ ...form, category: event.target.value, subcategory: '' })}
+                >
+                  {categoryNames.map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="field">
-              <span>Famille</span>
-              <select
-                className="input input--select"
-                value={form.category}
-                onChange={(event) => setForm({ ...form, category: event.target.value, subcategory: '' })}
-              >
-                {categoryNames.map((name) => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-            </label>
+              <label className="field">
+                <span>Sous-famille</span>
+                <select
+                  className="input input--select"
+                  value={form.subcategory}
+                  onChange={(event) => setForm({ ...form, subcategory: event.target.value })}
+                >
+                  <option value="">— Aucune —</option>
+                  {subcategoryOptions.map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="field">
-              <span>Sous-famille</span>
-              <select
-                className="input input--select"
-                value={form.subcategory}
-                onChange={(event) => setForm({ ...form, subcategory: event.target.value })}
-              >
-                <option value="">— Aucune —</option>
-                {subcategoryOptions.map((name) => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-            </label>
+              <label className="field">
+                <span>Prix (€)</span>
+                <input
+                  className="input"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={form.price}
+                  onChange={(event) => setForm({ ...form, price: event.target.value })}
+                  required
+                />
+              </label>
 
-            <label className="field">
-              <span>Prix (€)</span>
-              <input
-                className="input"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={form.price}
-                onChange={(event) => setForm({ ...form, price: event.target.value })}
-                required
-              />
-            </label>
+              <label className="field">
+                <span>Stock</span>
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.stock}
+                  onChange={(event) => setForm({ ...form, stock: event.target.value })}
+                  required
+                />
+              </label>
 
-            <label className="field">
-              <span>Stock</span>
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="1"
-                value={form.stock}
-                onChange={(event) => setForm({ ...form, stock: event.target.value })}
-                required
-              />
-            </label>
+              <label className="field admin-form__wide">
+                <span>Image (chemin ou URL)</span>
+                <input
+                  className="input"
+                  value={form.imageUrl}
+                  onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
+                  placeholder="/images/products/mon-produit.svg"
+                />
+              </label>
 
-            <label className="field admin-form__wide">
-              <span>Image (chemin ou URL)</span>
-              <input
-                className="input"
-                value={form.imageUrl}
-                onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
-                placeholder="/images/products/mon-produit.svg"
-              />
-            </label>
+              <label className="field admin-form__wide">
+                <span>Description</span>
+                <textarea
+                  className="input"
+                  rows={3}
+                  value={form.description}
+                  onChange={(event) => setForm({ ...form, description: event.target.value })}
+                  required
+                  maxLength={2000}
+                />
+              </label>
+            </div>
 
-            <label className="field admin-form__wide">
-              <span>Description</span>
-              <textarea
-                className="input"
-                rows={3}
-                value={form.description}
-                onChange={(event) => setForm({ ...form, description: event.target.value })}
-                required
-                maxLength={2000}
-              />
-            </label>
-          </div>
-
-          <div className="admin-form__actions">
-            <button type="submit" className="button button--primary" disabled={saving}>
-              {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer le produit'}
-            </button>
-          </div>
-        </form>
+            <div className="admin-form__actions">
+              <button type="submit" className="button button--primary" disabled={saving}>
+                {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer le produit'}
+              </button>
+            </div>
+          </form>
+        </Panel>
       )}
-
-      <div className="table-wrapper card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Produit</th>
-              <th>Famille</th>
-              <th>Prix</th>
-              <th>Stock</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((product) => (
-              <tr key={product._id}>
-                <td>
-                  <div className="admin-product__cell">
-                    <img src={product.imageUrl} alt="" />
-                    <span>
-                      {product.name}
-                      {product.subcategory && <small className="muted block">{product.subcategory}</small>}
-                    </span>
-                  </div>
-                </td>
-                <td>{product.category}</td>
-                <td>{formatPrice(product.price)}</td>
-                <td>
-                  <span className={`stock-hint ${product.stock === 0 ? 'stock-hint--out' : product.stock <= 5 ? 'stock-hint--low' : ''}`}>
-                    {product.stock}
-                  </span>
-                </td>
-                <td>
-                  <div className="admin-row-actions">
-                    <button type="button" className="button button--ghost button--sm" onClick={() => openEdit(product)}>
-                      Modifier
-                    </button>
-                    <button
-                      type="button"
-                      className="button button--danger-ghost button--sm"
-                      onClick={() => handleDelete(product)}
-                      disabled={deletingId === product._id}
-                    >
-                      {deletingId === product._id ? 'Suppression…' : 'Supprimer'}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 };

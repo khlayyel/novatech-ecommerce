@@ -14,7 +14,7 @@ import { logAdminAction } from '../services/audit.service.js';
 const PAID_STATUSES = ['paid', 'shipped', 'delivered'];
 const FULFILLMENT_STATUSES = ['paid', 'shipped', 'delivered'];
 const NEXT_STATUS = { paid: 'shipped', shipped: 'delivered' };
-const MAX_LIMIT = 50;
+const MAX_LIMIT = 200;
 const LOW_STOCK_THRESHOLD = 5;
 
 /**
@@ -232,7 +232,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
 /** GET /api/admin/users?search=&role=&page= */
 export const listAdminUsers = asyncHandler(async (req, res) => {
   const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
-  const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+  const limit = Math.min(200, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
 
   const filter = {};
   if (req.query.search) {
@@ -315,7 +315,7 @@ export const updateUserRole = asyncHandler(async (req, res) => {
 /** GET /api/admin/audit?page=&limit= — journal des actions d'administration. */
 export const listAuditLogs = asyncHandler(async (req, res) => {
   const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
-  const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 30));
+  const limit = Math.min(200, Math.max(1, Number.parseInt(req.query.limit, 10) || 30));
 
   const [logs, total] = await Promise.all([
     AuditLog.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),

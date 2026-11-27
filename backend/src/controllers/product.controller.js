@@ -4,7 +4,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../middleware/error.js';
 import { logAdminAction } from '../services/audit.service.js';
 
-const MAX_LIMIT = 48;
+const MAX_LIMIT = 200;
 
 const SORTS = {
   recent: { createdAt: -1 },

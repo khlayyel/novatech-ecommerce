@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import EmptyState from '../../components/EmptyState';
+import Panel from '../../components/ui/Panel';
+import DataTable from '../../components/ui/DataTable';
+import type { Column } from '../../components/ui/DataTable';
 import Spinner from '../../components/Spinner';
 import * as productsApi from '../../api/products';
 import { updateProductStock } from '../../api/admin';
@@ -16,7 +18,7 @@ const FILTERS: { value: StockFilter; label: string }[] = [
   { value: 'out', label: 'Épuisés' }
 ];
 
-/** Gestion des stocks : ajustement rapide, alertes et valeur d'inventaire. */
+/** Gestion des stocks : filtres repliables, tableau triable/paginé, édition rapide. */
 const AdminStockPage = () => {
   const { showToast } = useToast();
 
@@ -32,7 +34,7 @@ const AdminStockPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await productsApi.listProducts({ limit: 48, sort: 'recent' });
+      const data = await productsApi.listProducts({ limit: 200, sort: 'recent' });
       setProducts(data.products);
       setDrafts({});
     } catch (err) {
@@ -92,6 +94,86 @@ const AdminStockPage = () => {
     }
   };
 
+  const columns: Column<Product>[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        label: 'Produit',
+        sortValue: (product) => product.name,
+        render: (product) => (
+          <div className="admin-product__cell">
+            <img src={product.imageUrl} alt="" />
+            <span>{product.name}</span>
+          </div>
+        )
+      },
+      {
+        key: 'category',
+        label: 'Famille',
+        sortValue: (product) => String(product.category)
+      },
+      {
+        key: 'price',
+        label: 'Prix',
+        align: 'right',
+        sortValue: (product) => product.price,
+        render: (product) => formatPrice(product.price)
+      },
+      {
+        key: 'stock',
+        label: 'Stock actuel',
+        align: 'right',
+        sortValue: (product) => product.stock,
+        render: (product) => (
+          <span className={`stock-hint ${product.stock === 0 ? 'stock-hint--out' : product.stock <= 5 ? 'stock-hint--low' : ''}`}>
+            {product.stock}
+          </span>
+        )
+      },
+      {
+        key: 'newStock',
+        label: 'Nouveau stock',
+        sortable: false,
+        render: (product) => {
+          const draft = drafts[product._id];
+          return (
+            <input
+              type="number"
+              min="0"
+              step="1"
+              className="input input--compact"
+              aria-label={`Nouveau stock pour ${product.name}`}
+              value={draft ?? String(product.stock)}
+              onChange={(event) => setDrafts((current) => ({ ...current, [product._id]: event.target.value }))}
+            />
+          );
+        }
+      },
+      {
+        key: 'action',
+        label: 'Action',
+        align: 'right',
+        sortable: false,
+        render: (product) => {
+          const draft = drafts[product._id];
+          const dirty = draft !== undefined && Number(draft) !== product.stock;
+          return (
+            <button
+              type="button"
+              className="button button--ghost button--sm"
+              onClick={() => handleSave(product)}
+              disabled={!dirty || savingId === product._id}
+            >
+              {savingId === product._id ? 'Enregistrement…' : dirty ? 'Enregistrer' : 'À jour'}
+            </button>
+          );
+        }
+      }
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [drafts, savingId]
+  );
+
   if (loading && products.length === 0) {
     return (
       <div className="page-center">
@@ -102,129 +184,92 @@ const AdminStockPage = () => {
 
   if (error) {
     return (
-      <EmptyState
-        title="Stocks indisponibles"
-        message={error}
-        icon="⚠️"
-        action={
-          <button type="button" className="button button--primary" onClick={load}>
-            Réessayer
-          </button>
-        }
-      />
+      <Panel title="Stocks indisponibles" storageKey="stock-error">
+        <p className="muted">{error}</p>
+        <button type="button" className="button button--primary" onClick={load}>
+          Réessayer
+        </button>
+      </Panel>
     );
   }
 
   return (
     <div className="admin-panel">
-      <div className="stat-grid">
-        <article className="stat-card">
-          <span className="stat-card__label">Unités en stock</span>
-          <strong className="stat-card__value">{totals.units}</strong>
-          <span className="stat-card__hint">{products.length} références</span>
-        </article>
-        <article className="stat-card">
-          <span className="stat-card__label">Valeur d'inventaire</span>
-          <strong className="stat-card__value">{formatPrice(totals.value)}</strong>
-          <span className="stat-card__hint">prix de vente × stock</span>
-        </article>
-        <article className="stat-card">
-          <span className="stat-card__label">Stocks faibles</span>
-          <strong className="stat-card__value">{totals.low}</strong>
-          <span className="stat-card__hint">≤ 5 unités restantes</span>
-        </article>
-        <article className="stat-card">
-          <span className="stat-card__label">Épuisés</span>
-          <strong className="stat-card__value">{totals.out}</strong>
-          <span className="stat-card__hint">à réapprovisionner</span>
-        </article>
-      </div>
-
-      <div className="admin-toolbar">
-        <div className="chip-row" role="group" aria-label="Filtrer les stocks">
-          {FILTERS.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              className={`chip${filter === item.value ? ' chip--active' : ''}`}
-              onClick={() => setFilter(item.value)}
-            >
-              {item.label}
-            </button>
-          ))}
+      <Panel title="Indicateurs" subtitle="Vue d'ensemble de l'inventaire" storageKey="stock-stats">
+        <div className="stat-grid stat-grid--tight">
+          <article className="stat-card">
+            <span className="stat-card__label">Unités en stock</span>
+            <strong className="stat-card__value">{totals.units}</strong>
+            <span className="stat-card__hint">{products.length} références</span>
+          </article>
+          <article className="stat-card">
+            <span className="stat-card__label">Valeur d'inventaire</span>
+            <strong className="stat-card__value">{formatPrice(totals.value)}</strong>
+            <span className="stat-card__hint">prix de vente × stock</span>
+          </article>
+          <article className="stat-card">
+            <span className="stat-card__label">Stocks faibles</span>
+            <strong className="stat-card__value">{totals.low}</strong>
+            <span className="stat-card__hint">≤ 5 unités restantes</span>
+          </article>
+          <article className="stat-card">
+            <span className="stat-card__label">Épuisés</span>
+            <strong className="stat-card__value">{totals.out}</strong>
+            <span className="stat-card__hint">à réapprovisionner</span>
+          </article>
         </div>
-        <input
-          type="search"
-          className="input"
-          placeholder="Rechercher un produit…"
-          aria-label="Rechercher un produit"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
+      </Panel>
+
+      <Panel
+        title="Filtres"
+        subtitle="Filtrer par niveau de stock ou par nom"
+        storageKey="stock-filters"
+        actions={<span className="muted small">{visible.length} / {products.length} produit(s)</span>}
+      >
+        <div className="filter-grid filter-grid--two">
+          <div className="field">
+            <span>Niveau de stock</span>
+            <div className="chip-row" role="group" aria-label="Filtrer les stocks">
+              {FILTERS.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  className={`chip${filter === item.value ? ' chip--active' : ''}`}
+                  onClick={() => setFilter(item.value)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="field">
+            <span>Recherche</span>
+            <input
+              type="search"
+              className="input"
+              placeholder="Rechercher un produit…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+        </div>
+      </Panel>
+
+      <Panel
+        title="Stocks"
+        subtitle="Modifiez la quantité puis « Enregistrer »"
+        storageKey="stock-table"
+        bodyClassName="panel__body--flush"
+      >
+        <DataTable
+          columns={columns}
+          rows={visible}
+          rowKey={(product) => product._id}
+          pageSizeKey="admin-stock"
+          emptyLabel="Aucun produit ne correspond à ce filtre."
         />
-      </div>
-
-      <div className="table-wrapper card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Produit</th>
-              <th>Famille</th>
-              <th>Prix</th>
-              <th>Stock</th>
-              <th>Nouveau stock</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((product) => {
-              const draft = drafts[product._id];
-              const dirty = draft !== undefined && Number(draft) !== product.stock;
-              return (
-                <tr key={product._id}>
-                  <td>
-                    <div className="admin-product__cell">
-                      <img src={product.imageUrl} alt="" />
-                      <span>{product.name}</span>
-                    </div>
-                  </td>
-                  <td>{product.category}</td>
-                  <td>{formatPrice(product.price)}</td>
-                  <td>
-                    <span className={`stock-hint ${product.stock === 0 ? 'stock-hint--out' : product.stock <= 5 ? 'stock-hint--low' : ''}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      className="input input--compact"
-                      aria-label={`Nouveau stock pour ${product.name}`}
-                      value={draft ?? String(product.stock)}
-                      onChange={(event) => setDrafts((current) => ({ ...current, [product._id]: event.target.value }))}
-                    />
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="button button--ghost button--sm"
-                      onClick={() => handleSave(product)}
-                      disabled={!dirty || savingId === product._id}
-                    >
-                      {savingId === product._id ? 'Enregistrement…' : dirty ? 'Enregistrer' : 'À jour'}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {visible.length === 0 && (
-        <EmptyState title="Aucun produit" message="Aucun produit ne correspond à ce filtre." icon="📦" />
-      )}
+      </Panel>
     </div>
   );
 };

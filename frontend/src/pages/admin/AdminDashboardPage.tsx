@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import EmptyState from '../../components/EmptyState';
+import Panel from '../../components/ui/Panel';
+import DataTable from '../../components/ui/DataTable';
+import type { Column } from '../../components/ui/DataTable';
 import Spinner from '../../components/Spinner';
 import StatusBadge from '../../components/StatusBadge';
 import BarChart from '../../components/admin/BarChart';
 import { getAnalytics, getStats } from '../../api/admin';
 import { getErrorMessage } from '../../utils/request';
 import { formatDate, formatPrice } from '../../utils/format';
-import type { AdminAnalytics, AdminStats } from '../../types';
+import type { AdminAnalytics, AdminOrder, AdminStats } from '../../types';
 
 const STATUS_META = [
   { key: 'paid', label: 'Payées', color: '#4f46e5' },
@@ -31,10 +33,7 @@ const buildGradient = (breakdown: Record<string, number>) => {
   return `conic-gradient(${parts.join(', ')})`;
 };
 
-/**
- * Tableau de bord : indicateurs clés, courbe de chiffre d'affaires,
- * répartition des statuts, meilleures ventes et valeur du stock.
- */
+/** Tableau de bord : indicateurs, courbe, répartition, ventes et stocks. */
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
@@ -69,8 +68,65 @@ const AdminDashboardPage = () => {
     [analytics]
   );
 
+  const orderColumns: Column<AdminOrder>[] = useMemo(
+    () => [
+      {
+        key: 'id',
+        label: 'Commande',
+        sortValue: (order) => order.createdAt,
+        render: (order) => <span className="mono">{order._id.slice(-8).toUpperCase()}</span>
+      },
+      {
+        key: 'client',
+        label: 'Client',
+        sortValue: (order) => (order.user ? order.user.name : 'Invité'),
+        render: (order) => (order.user ? order.user.name : 'Invité')
+      },
+      {
+        key: 'createdAt',
+        label: 'Date',
+        sortValue: (order) => order.createdAt,
+        render: (order) => formatDate(order.createdAt)
+      },
+      {
+        key: 'totalAmount',
+        label: 'Montant',
+        align: 'right',
+        sortValue: (order) => order.totalAmount,
+        render: (order) => formatPrice(order.totalAmount)
+      },
+      {
+        key: 'status',
+        label: 'Statut',
+        sortValue: (order) => order.status,
+        render: (order) => <StatusBadge status={order.status} />
+      }
+    ],
+    []
+  );
+
+  const categoryColumns: Column<AdminAnalytics['categories'][number]>[] = useMemo(
+    () => [
+      { key: 'category', label: 'Famille', sortValue: (row) => row.category },
+      { key: 'products', label: 'Produits', align: 'right', sortValue: (row) => row.products },
+      { key: 'stock', label: 'Unités', align: 'right', sortValue: (row) => row.stock },
+      {
+        key: 'value',
+        label: 'Valeur',
+        align: 'right',
+        sortValue: (row) => row.value,
+        render: (row) => formatPrice(row.value)
+      }
+    ],
+    []
+  );
+
   if (error) {
-    return <EmptyState title="Indicateurs indisponibles" message={error} icon="⚠️" />;
+    return (
+      <Panel title="Indicateurs indisponibles" storageKey="dashboard-error">
+        <p className="muted">{error}</p>
+      </Panel>
+    );
   }
 
   if (!stats || !analytics) {
@@ -87,28 +143,30 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="admin-dashboard">
-      <div className="stat-grid">
-        <article className="stat-card">
-          <span className="stat-card__label">Chiffre d'affaires</span>
-          <strong className="stat-card__value">{formatPrice(analytics.totals.revenue)}</strong>
-          <span className="stat-card__hint">{stats.paidOrders} commande(s) payée(s)</span>
-        </article>
-        <article className="stat-card">
-          <span className="stat-card__label">Panier moyen</span>
-          <strong className="stat-card__value">{formatPrice(analytics.totals.averageBasket)}</strong>
-          <span className="stat-card__hint">{analytics.totals.orders} commande(s) réglée(s)</span>
-        </article>
-        <article className="stat-card">
-          <span className="stat-card__label">Commandes</span>
-          <strong className="stat-card__value">{stats.orders.total}</strong>
-          <span className="stat-card__hint">{stats.orders.pending} en attente · {stats.orders.failed} échouée(s)</span>
-        </article>
-        <article className="stat-card">
-          <span className="stat-card__label">Catalogue</span>
-          <strong className="stat-card__value">{stats.products.total}</strong>
-          <span className="stat-card__hint">{stats.products.lowStock} en stock faible</span>
-        </article>
-      </div>
+      <Panel title="Indicateurs" subtitle="Vue d'ensemble de la boutique" storageKey="dashboard-stats">
+        <div className="stat-grid stat-grid--tight">
+          <article className="stat-card">
+            <span className="stat-card__label">Chiffre d'affaires</span>
+            <strong className="stat-card__value">{formatPrice(analytics.totals.revenue)}</strong>
+            <span className="stat-card__hint">{stats.paidOrders} commande(s) payée(s)</span>
+          </article>
+          <article className="stat-card">
+            <span className="stat-card__label">Panier moyen</span>
+            <strong className="stat-card__value">{formatPrice(analytics.totals.averageBasket)}</strong>
+            <span className="stat-card__hint">{analytics.totals.orders} commande(s) réglée(s)</span>
+          </article>
+          <article className="stat-card">
+            <span className="stat-card__label">Commandes</span>
+            <strong className="stat-card__value">{stats.orders.total}</strong>
+            <span className="stat-card__hint">{stats.orders.pending} en attente · {stats.orders.failed} échouée(s)</span>
+          </article>
+          <article className="stat-card">
+            <span className="stat-card__label">Catalogue</span>
+            <strong className="stat-card__value">{stats.products.total}</strong>
+            <span className="stat-card__hint">{stats.products.lowStock} en stock faible</span>
+          </article>
+        </div>
+      </Panel>
 
       {stats.products.lowStock > 0 && (
         <div className="banner banner--warn" role="status">
@@ -118,16 +176,16 @@ const AdminDashboardPage = () => {
       )}
 
       <div className="admin-grid admin-grid--two">
-        <section className="card">
-          <div className="card__head">
-            <h2 className="card__title">Chiffre d'affaires — 14 derniers jours</h2>
-            <span className="badge-soft">{formatPrice(analytics.series.reduce((sum, point) => sum + point.revenue, 0))}</span>
-          </div>
+        <Panel
+          title="Chiffre d'affaires — 14 derniers jours"
+          subtitle="Commandes payées, expédiées et livrées"
+          storageKey="dashboard-revenue"
+          actions={<span className="badge-soft">{formatPrice(analytics.series.reduce((sum, point) => sum + point.revenue, 0))}</span>}
+        >
           <BarChart points={points} emptyLabel="Aucune vente sur la période." />
-        </section>
+        </Panel>
 
-        <section className="card">
-          <h2 className="card__title">Répartition des commandes</h2>
+        <Panel title="Répartition des commandes" storageKey="dashboard-status">
           <div className="donut-row">
             <div className="donut" style={{ background: gradient }} role="img" aria-label="Répartition des commandes par statut">
               <span className="donut__hole">{statusTotal}</span>
@@ -142,12 +200,11 @@ const AdminDashboardPage = () => {
               ))}
             </ul>
           </div>
-        </section>
+        </Panel>
       </div>
 
       <div className="admin-grid admin-grid--two">
-        <section className="card">
-          <h2 className="card__title">Meilleures ventes</h2>
+        <Panel title="Meilleures ventes" subtitle="Top 5 par chiffre d'affaires" storageKey="dashboard-top">
           {analytics.topProducts.length === 0 ? (
             <p className="muted">Aucune vente enregistrée.</p>
           ) : (
@@ -166,74 +223,42 @@ const AdminDashboardPage = () => {
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
 
-        <section className="card">
-          <h2 className="card__title">Valeur du stock par famille</h2>
-          <div className="table-wrapper">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Famille</th>
-                  <th>Produits</th>
-                  <th>Unités</th>
-                  <th>Valeur</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.categories.map((row) => (
-                  <tr key={row.category}>
-                    <td>{row.category}</td>
-                    <td>{row.products}</td>
-                    <td>{row.stock}</td>
-                    <td>{formatPrice(row.value)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <Panel
+          title="Valeur du stock par famille"
+          subtitle="Prix de vente × unités disponibles"
+          storageKey="dashboard-stock"
+          bodyClassName="panel__body--flush"
+        >
+          <DataTable
+            columns={categoryColumns}
+            rows={analytics.categories}
+            rowKey={(row) => row.category}
+            pageSizeKey="dashboard-categories"
+          />
+        </Panel>
       </div>
 
-      <section className="card">
-        <div className="card__head">
-          <h2 className="card__title">Dernières commandes</h2>
+      <Panel
+        title="Dernières commandes"
+        subtitle="Cinq commandes les plus récentes"
+        storageKey="dashboard-orders"
+        bodyClassName="panel__body--flush"
+        actions={
           <Link to="/admin/orders" className="button button--ghost button--sm">
             Tout voir
           </Link>
-        </div>
-
-        {stats.recentOrders.length === 0 ? (
-          <p className="muted">Aucune commande pour le moment.</p>
-        ) : (
-          <div className="table-wrapper">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Commande</th>
-                  <th>Client</th>
-                  <th>Date</th>
-                  <th>Montant</th>
-                  <th>Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.recentOrders.map((order) => (
-                  <tr key={order._id}>
-                    <td className="mono">{order._id.slice(-8).toUpperCase()}</td>
-                    <td>{order.user ? order.user.name : 'Invité'}</td>
-                    <td>{formatDate(order.createdAt)}</td>
-                    <td>{formatPrice(order.totalAmount)}</td>
-                    <td>
-                      <StatusBadge status={order.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+        }
+      >
+        <DataTable
+          columns={orderColumns}
+          rows={stats.recentOrders}
+          rowKey={(order) => order._id}
+          pageSizeKey="dashboard-orders"
+          emptyLabel="Aucune commande pour le moment."
+        />
+      </Panel>
     </div>
   );
 };

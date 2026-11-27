@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
-import EmptyState from '../../components/EmptyState';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Panel from '../../components/ui/Panel';
+import DataTable from '../../components/ui/DataTable';
+import type { Column } from '../../components/ui/DataTable';
 import Spinner from '../../components/Spinner';
 import { listAuditLogs } from '../../api/admin';
 import { getErrorMessage } from '../../utils/request';
@@ -28,7 +30,7 @@ const CONTROLS = [
   { title: 'CORS', detail: 'Origines autorisées limitées à la boutique déployée et au poste local.' }
 ];
 
-/** Sécurité : posture de l'API et journal des actions d'administration. */
+/** Sécurité : posture de l'API et journal d'audit paginé. */
 const AdminSecurityPage = () => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [total, setTotal] = useState(0);
@@ -39,7 +41,7 @@ const AdminSecurityPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await listAuditLogs({ limit: 50 });
+      const data = await listAuditLogs({ limit: 200 });
       setLogs(data.logs);
       setTotal(data.total);
     } catch (err) {
@@ -53,6 +55,46 @@ const AdminSecurityPage = () => {
     load();
   }, [load]);
 
+  const columns: Column<AuditLogEntry>[] = useMemo(
+    () => [
+      {
+        key: 'createdAt',
+        label: 'Date',
+        sortValue: (entry) => entry.createdAt,
+        render: (entry) => formatDate(entry.createdAt)
+      },
+      {
+        key: 'action',
+        label: 'Action',
+        sortValue: (entry) => entry.action,
+        render: (entry) => (
+          <span className={`audit-action audit-action--${entry.action.split('.')[0]}`}>
+            {ACTION_LABELS[entry.action] || entry.action}
+          </span>
+        )
+      },
+      {
+        key: 'target',
+        label: 'Cible',
+        sortValue: (entry) => entry.target,
+        render: (entry) => <span className="mono">{entry.target || '—'}</span>
+      },
+      {
+        key: 'actorEmail',
+        label: 'Auteur',
+        sortValue: (entry) => entry.actorEmail,
+        render: (entry) => entry.actorEmail || '—'
+      },
+      {
+        key: 'ip',
+        label: 'IP',
+        sortable: false,
+        render: (entry) => <span className="mono">{entry.ip || '—'}</span>
+      }
+    ],
+    []
+  );
+
   if (loading && logs.length === 0) {
     return (
       <div className="page-center">
@@ -63,26 +105,22 @@ const AdminSecurityPage = () => {
 
   if (error) {
     return (
-      <EmptyState
-        title="Journal indisponible"
-        message={error}
-        icon="⚠️"
-        action={
-          <button type="button" className="button button--primary" onClick={load}>
-            Réessayer
-          </button>
-        }
-      />
+      <Panel title="Journal indisponible" storageKey="security-error">
+        <p className="muted">{error}</p>
+        <button type="button" className="button button--primary" onClick={load}>
+          Réessayer
+        </button>
+      </Panel>
     );
   }
 
   return (
     <div className="admin-panel">
-      <section className="card">
-        <div className="card__head">
-          <h2 className="card__title">Contrôles de sécurité actifs</h2>
-          <span className="badge-soft">API Express + MongoDB</span>
-        </div>
+      <Panel
+        title="Contrôles de sécurité actifs"
+        subtitle="API Express + MongoDB"
+        storageKey="security-controls"
+      >
         <ul className="security-grid">
           {CONTROLS.map((control) => (
             <li key={control.title} className="security-item">
@@ -94,49 +132,27 @@ const AdminSecurityPage = () => {
             </li>
           ))}
         </ul>
-      </section>
+      </Panel>
 
-      <section className="card">
-        <div className="card__head">
-          <h2 className="card__title">Journal d’audit ({total})</h2>
+      <Panel
+        title={`Journal d’audit (${total})`}
+        subtitle="Tri par colonne et pagination"
+        storageKey="security-audit"
+        bodyClassName="panel__body--flush"
+        actions={
           <button type="button" className="button button--ghost button--sm" onClick={load}>
             Actualiser
           </button>
-        </div>
-
-        {logs.length === 0 ? (
-          <p className="muted">Aucune action d’administration enregistrée pour le moment.</p>
-        ) : (
-          <div className="table-wrapper">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Action</th>
-                  <th>Cible</th>
-                  <th>Auteur</th>
-                  <th>IP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((entry) => (
-                  <tr key={entry._id}>
-                    <td>{formatDate(entry.createdAt)}</td>
-                    <td>
-                      <span className={`audit-action audit-action--${entry.action.split('.')[0]}`}>
-                        {ACTION_LABELS[entry.action] || entry.action}
-                      </span>
-                    </td>
-                    <td className="mono">{entry.target || '—'}</td>
-                    <td>{entry.actorEmail || '—'}</td>
-                    <td className="mono">{entry.ip || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+        }
+      >
+        <DataTable
+          columns={columns}
+          rows={logs}
+          rowKey={(entry) => entry._id}
+          pageSizeKey="admin-audit"
+          emptyLabel="Aucune action d’administration enregistrée pour le moment."
+        />
+      </Panel>
     </div>
   );
 };

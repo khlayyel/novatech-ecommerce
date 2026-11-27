@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import EmptyState from '../../components/EmptyState';
+import Panel from '../../components/ui/Panel';
 import Spinner from '../../components/Spinner';
 import {
   createCategory,
@@ -27,11 +27,12 @@ const parseSubcategories = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
-/** Familles et sous-familles : création, renommage, suppression. */
+/** Familles et sous-familles : filtres repliables, création, renommage, suppression. */
 const AdminCategoriesPage = () => {
   const { showToast } = useToast();
 
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -56,6 +57,16 @@ const AdminCategoriesPage = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return categories;
+    return categories.filter(
+      (category) =>
+        category.name.toLowerCase().includes(term) ||
+        category.subcategories.some((name) => name.toLowerCase().includes(term))
+    );
+  }, [categories, search]);
 
   const openCreate = () => {
     setEditing(null);
@@ -138,123 +149,141 @@ const AdminCategoriesPage = () => {
 
   if (error) {
     return (
-      <EmptyState
-        title="Catégories indisponibles"
-        message={error}
-        icon="⚠️"
-        action={
-          <button type="button" className="button button--primary" onClick={load}>
-            Réessayer
-          </button>
-        }
-      />
+      <Panel title="Catégories indisponibles" storageKey="categories-error">
+        <p className="muted">{error}</p>
+        <button type="button" className="button button--primary" onClick={load}>
+          Réessayer
+        </button>
+      </Panel>
     );
   }
 
   return (
     <div className="admin-panel">
-      <div className="admin-toolbar">
-        <p className="muted">
-          {categories.length} famille(s) — renommer une famille met à jour les produits associés.
-        </p>
-        <button type="button" className="button button--primary" onClick={openCreate}>
-          + Nouvelle famille
-        </button>
-      </div>
+      <Panel
+        title="Filtres"
+        subtitle="Rechercher une famille ou une sous-famille"
+        storageKey="categories-filters"
+        actions={<span className="muted small">{filtered.length} / {categories.length} famille(s)</span>}
+      >
+        <div className="filter-grid">
+          <label className="field">
+            <span>Recherche</span>
+            <input
+              type="search"
+              className="input"
+              placeholder="Ordinateurs, Portables…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+        </div>
+      </Panel>
+
+      <Panel
+        title="Familles et sous-familles"
+        subtitle="Renommer une famille met à jour les produits associés"
+        storageKey="categories-grid"
+        actions={
+          <button type="button" className="button button--primary button--sm" onClick={openCreate}>
+            + Nouvelle famille
+          </button>
+        }
+      >
+        {filtered.length === 0 ? (
+          <p className="muted">Aucune famille ne correspond à cette recherche.</p>
+        ) : (
+          <div className="category-grid">
+            {filtered.map((category) => (
+              <article key={category._id} className="category-card">
+                <header className="category-card__head">
+                  <h3>{category.name}</h3>
+                  <span className="badge-soft">{category.subcategories.length} sous-famille(s)</span>
+                </header>
+
+                {category.description && <p className="muted small">{category.description}</p>}
+
+                {category.subcategories.length > 0 ? (
+                  <ul className="chip-row chip-row--static">
+                    {category.subcategories.map((name) => (
+                      <li key={name} className="chip chip--static">{name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted small">Aucune sous-famille.</p>
+                )}
+
+                <footer className="category-card__actions">
+                  <button type="button" className="button button--ghost button--sm" onClick={() => openEdit(category)}>
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    className="button button--danger-ghost button--sm"
+                    onClick={() => handleDelete(category)}
+                    disabled={deletingId === category._id}
+                  >
+                    {deletingId === category._id ? 'Suppression…' : 'Supprimer'}
+                  </button>
+                </footer>
+              </article>
+            ))}
+          </div>
+        )}
+      </Panel>
 
       {formOpen && (
-        <form className="card admin-form" onSubmit={handleSubmit}>
-          <div className="card__head">
-            <h2 className="card__title">{editing ? 'Modifier la famille' : 'Nouvelle famille'}</h2>
+        <Panel
+          title={editing ? 'Modifier la famille' : 'Nouvelle famille'}
+          subtitle={editing ? editing.name : 'Nom, description et sous-familles'}
+          storageKey="categories-form"
+          actions={
             <button type="button" className="button button--ghost button--sm" onClick={closeForm}>
-              Annuler
+              Fermer
             </button>
-          </div>
+          }
+        >
+          <form onSubmit={handleSubmit}>
+            <div className="admin-form__grid">
+              <label className="field">
+                <span>Nom</span>
+                <input
+                  className="input"
+                  value={form.name}
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
+                  required
+                  maxLength={60}
+                />
+              </label>
 
-          <div className="admin-form__grid">
-            <label className="field">
-              <span>Nom</span>
-              <input
-                className="input"
-                value={form.name}
-                onChange={(event) => setForm({ ...form, name: event.target.value })}
-                required
-                maxLength={60}
-              />
-            </label>
+              <label className="field">
+                <span>Description</span>
+                <input
+                  className="input"
+                  value={form.description}
+                  onChange={(event) => setForm({ ...form, description: event.target.value })}
+                  maxLength={240}
+                />
+              </label>
 
-            <label className="field">
-              <span>Description</span>
-              <input
-                className="input"
-                value={form.description}
-                onChange={(event) => setForm({ ...form, description: event.target.value })}
-                maxLength={240}
-              />
-            </label>
+              <label className="field admin-form__wide">
+                <span>Sous-familles (séparées par des virgules)</span>
+                <input
+                  className="input"
+                  value={form.subcategories}
+                  onChange={(event) => setForm({ ...form, subcategories: event.target.value })}
+                  placeholder="Portables, Bureaux, Mini PC"
+                />
+              </label>
+            </div>
 
-            <label className="field admin-form__wide">
-              <span>Sous-familles (séparées par des virgules)</span>
-              <input
-                className="input"
-                value={form.subcategories}
-                onChange={(event) => setForm({ ...form, subcategories: event.target.value })}
-                placeholder="Portables, Bureaux, Mini PC"
-              />
-            </label>
-          </div>
-
-          <div className="admin-form__actions">
-            <button type="submit" className="button button--primary" disabled={saving}>
-              {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer la famille'}
-            </button>
-          </div>
-        </form>
-      )}
-
-      <div className="category-grid">
-        {categories.map((category) => (
-          <article key={category._id} className="category-card">
-            <header className="category-card__head">
-              <h3>{category.name}</h3>
-              <span className="badge-soft">{category.subcategories.length} sous-famille(s)</span>
-            </header>
-
-            {category.description && <p className="muted small">{category.description}</p>}
-
-            {category.subcategories.length > 0 ? (
-              <ul className="chip-row chip-row--static">
-                {category.subcategories.map((name) => (
-                  <li key={name} className="chip chip--static">{name}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted small">Aucune sous-famille.</p>
-            )}
-
-            <footer className="category-card__actions">
-              <button type="button" className="button button--ghost button--sm" onClick={() => openEdit(category)}>
-                Modifier
+            <div className="admin-form__actions">
+              <button type="submit" className="button button--primary" disabled={saving}>
+                {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer la famille'}
               </button>
-              <button
-                type="button"
-                className="button button--danger-ghost button--sm"
-                onClick={() => handleDelete(category)}
-                disabled={deletingId === category._id}
-              >
-                {deletingId === category._id ? 'Suppression…' : 'Supprimer'}
-              </button>
-            </footer>
-          </article>
-        ))}
-      </div>
-
-      {categories.length === 0 && (
-        <EmptyState
-          title="Aucune catégorie"
-          message="Créez une première famille pour organiser le catalogue."
-          icon="🗂️"
-        />
+            </div>
+          </form>
+        </Panel>
       )}
     </div>
   );

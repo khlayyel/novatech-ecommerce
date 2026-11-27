@@ -63,11 +63,12 @@ novatech-ecommerce/
 │   │   ├── api/                # client Axios central (+ produits, panier, commandes, auth, admin)
 │   │   ├── components/         # Navbar, ProductCard, CheckoutForm, ProtectedRoute…
 │   │   ├── components/admin/   # AdminIcon, BarChart (graphiques sans dépendance)
+│   │   ├── components/ui/      # Panel repliable, DataTable (tri + pagination)
 │   │   ├── context/            # AuthContext (JWT), CartContext, ToastContext
 │   │   ├── pages/              # Accueil, fiche produit, panier, paiement, suivi, auth
 │   │   ├── pages/admin/        # tableau de bord, produits, catégories, stocks, commandes, clients, sécurité
 │   │   ├── types/              # types partagés
-│   │   └── __tests__/          # 11 suites Jest/RTL
+│   │   └── __tests__/          # 13 suites Jest/RTL
 │   └── public/images/products/ # 24 illustrations SVG du catalogue
 ├── .github/workflows/          # ci.yml (tests) + deploy.yml (CD)
 ├── Dockerfile.backend / Dockerfile.frontend / nginx.conf
@@ -161,6 +162,8 @@ Un rôle `admin` ouvre `/admin`, protégé côté client **et** côté serveur :
 | `/admin/security` | Posture de sécurité et journal d'audit horodaté de toutes les actions admin |
 
 Les écrans **Produits**, **Commandes** et **Clients** proposent un **export CSV** (séparateur `;`, BOM UTF-8) directement ouvrable dans Excel.
+
+**Standard d'interface** : chaque page de l'admin est composée de **panneaux repliables** (`Panel` : filtres, tableau, formulaire) dont l'état est mémorisé par le navigateur. Tous les tableaux utilisent le même composant `DataTable` : tri par clic sur n'importe quel en-tête de colonne, pagination **10 lignes par défaut** avec choix 5 / 10 / 15 / 20 / 50 (choix mémorisé par tableau) et compteur « X–Y sur N ».
 
 Le rôle n'est pas embarqué dans le JWT : `requireAdmin` le relit en base à chaque requête, ce qui permet une révocation immédiate. Un client authentifié reçoit `403` sur `/api/admin/*`.
 
@@ -282,7 +285,7 @@ npm test --prefix frontend
 | `backend/tests/checkout.test.js` | Montant **recalculé serveur** (falsification ignorée), stock insuffisant 409, confirmation idempotente, autorisations |
 | `backend/tests/webhook.test.js` | Signature invalide 400, `paid` + décrémentation + panier vidé, **rejeu idempotent**, paiement échoué |
 | `backend/tests/admin.test.js` | 401/403, statistiques, CRUD produits, transitions de statut `paid → shipped → delivered` |
-| `frontend/src/__tests__/*.tsx` | Catalogue, fiche produit, panier, formulaire Stripe, authentification, garde admin, coquille d'administration, suivi, 404 |
+| `frontend/src/__tests__/*.tsx` | Catalogue, fiche produit, panier, formulaire Stripe, authentification, garde admin, coquille admin, **DataTable (tri/pagination)**, **Panel repliable**, suivi, 404 |
 
 Le backend est testé avec **MongoDB en mémoire** (`mongodb-memory-server`) et le service Stripe **moqué** : aucun appel réseau, aucune base réelle. Le frontend est testé en jsdom avec React Testing Library.
 

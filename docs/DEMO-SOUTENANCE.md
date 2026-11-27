@@ -47,8 +47,8 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 ## 6 bis. Espace d'administration (≈ 2 min)
 
 1. Se déconnecter, puis se connecter avec `admin@novatech.fr` / `Admin1234!` → le lien **Administration** apparaît dans la navbar.
-2. **Tableau de bord** `/admin` : CA sur 14 jours (histogramme), répartition des commandes (donut), meilleures ventes, valeur du stock par famille.
-3. **Produits** `/admin/products` : recherche, ouverture du formulaire, changement de famille/sous-famille, création d'un produit de test puis suppression.
+2. **Tableau de bord** `/admin` : CA sur 14 jours (histogramme), répartition des commandes (donut), meilleures ventes, valeur du stock par famille. Replier un panneau puis recharger la page pour montrer que l'état est mémorisé.
+3. **Produits** `/admin/products` : filtrer via la carte *Filtres* repliable, trier par prix en cliquant l'en-tête, passer la pagination à 5 puis revenir à 10, ouvrir le formulaire et créer un produit de test puis le supprimer.
 4. **Catégories** `/admin/categories` : renommer une famille → vérifier que le catalogue suit (mise à jour en cascade) ; tentative de suppression d'une famille utilisée → message `409`.
 5. **Stocks** `/admin/stock` : filtrer « stock faible », modifier un stock et enregistrer ; le catalogue reflète la nouvelle valeur.
 6. **Commandes** `/admin/orders` : ouvrir **Détails** d'une commande (articles, dates), passer une commande *payée* en **Expédiée** puis **Livrée**, puis cliquer **Exporter CSV**.
@@ -58,7 +58,7 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 
 ## 7. Qualité & DevOps (échange, ≈ 1 min)
 
-- `npm test` : montrer les 6 suites backend (84 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 11 suites frontend (43 tests, RTL).
+- `npm test` : montrer les 6 suites backend (84 tests, Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 13 suites frontend (50 tests, RTL).
 - `npm run smoke` : montrer le tableau de 55 vérifications dont le **paiement réel** et le **webhook signé**.
 - CI GitHub Actions : lint + tests + build à chaque push ; déploiement Render/Vercel sur `main` via secrets.
 - Docker : `docker compose up --build` → stack complète mongo/api/web.
