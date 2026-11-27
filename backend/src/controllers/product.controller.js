@@ -61,7 +61,15 @@ export const getProducts = asyncHandler(async (req, res) => {
 });
 
 /** Champs modifiables par un administrateur (liste blanche anti-mass-assignment). */
-const PRODUCT_FIELDS = ['name', 'description', 'price', 'category', 'subcategory', 'stock', 'imageUrl'];
+const PRODUCT_FIELDS = ['name', 'description', 'price', 'category', 'subcategory', 'stock', 'imageUrl', 'imageUrls'];
+
+const normalizeImageUrls = (input) => {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((value) => typeof value === 'string' && value.trim().length > 0)
+    .map((value) => value.trim())
+    .slice(0, 5);
+};
 
 const pickProductFields = (body = {}) => {
   const data = {};
@@ -111,6 +119,18 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Aucun champ de produit fourni');
   }
 
+  if (Array.isArray(req.body.imageUrls) && req.body.imageUrls.length > 5) {
+    throw new ApiError(400, '5 images maximum par produit');
+  }
+
+  if (data.imageUrls !== undefined) {
+    const urls = normalizeImageUrls(data.imageUrls);
+    data.imageUrls = urls;
+    data.imageUrl = urls[0] || '';
+  } else if (data.imageUrl) {
+    data.imageUrls = [String(data.imageUrl).trim()];
+  }
+
   const product = await Product.create(data);
   await logAdminAction(req, 'product.create', product.name, { price: product.price, stock: product.stock });
   res.status(201).json(product);
@@ -124,6 +144,18 @@ export const updateProduct = asyncHandler(async (req, res) => {
   const data = pickProductFields(req.body);
   if (Object.keys(data).length === 0) {
     throw new ApiError(400, 'Aucun champ à mettre à jour');
+  }
+
+  if (Array.isArray(req.body.imageUrls) && req.body.imageUrls.length > 5) {
+    throw new ApiError(400, '5 images maximum par produit');
+  }
+
+  if (data.imageUrls !== undefined) {
+    const urls = normalizeImageUrls(data.imageUrls);
+    data.imageUrls = urls;
+    data.imageUrl = urls[0] || '';
+  } else if (data.imageUrl !== undefined) {
+    data.imageUrls = data.imageUrl ? [String(data.imageUrl).trim()] : [];
   }
 
   const product = await Product.findByIdAndUpdate(id, data, {

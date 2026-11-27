@@ -17,6 +17,7 @@ export interface Product {
   subcategory?: string;
   stock: number;
   imageUrl: string;
+  imageUrls?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -91,6 +92,7 @@ export interface ProductInput {
   subcategory?: string;
   stock: number;
   imageUrl?: string;
+  imageUrls?: string[];
 }
 
 export interface CategoryInfo {
@@ -99,6 +101,8 @@ export interface CategoryInfo {
   name: string;
   description: string;
   subcategories: string[];
+  imageUrl?: string;
+  subcategoryImages?: Record<string, string>;
   createdAt: string;
   updatedAt: string;
 }
@@ -108,6 +112,13 @@ export interface CategoryInput {
   name: string;
   description?: string;
   subcategories?: string[];
+  imageUrl?: string;
+  subcategoryImages?: Record<string, string>;
+}
+
+export interface CategoryGroup {
+  name: string;
+  imageUrl: string;
 }
 
 export interface AdminOrderCustomer {

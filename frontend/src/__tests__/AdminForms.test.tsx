@@ -43,6 +43,7 @@ beforeEach(() => {
   window.localStorage.clear();
   jest.clearAllMocks();
   mockedAdmin.listCategories.mockResolvedValue(categoryTree);
+  mockedAdmin.listCategoryGroups.mockResolvedValue([]);
   mockedAdmin.updateProduct.mockResolvedValue(product);
   mockedAdmin.updateCategory.mockResolvedValue(categoryTree[0]);
 });

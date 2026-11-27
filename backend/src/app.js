@@ -12,6 +12,8 @@ import orderRoutes from './routes/order.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import categoryRoutes from './routes/category.routes.js';
+import mediaRoutes from './routes/media.routes.js';
+import categoryGroupRoutes from './routes/category-group.routes.js';
 import { stripeWebhook } from './controllers/order.controller.js';
 import { ApiError, notFound, errorHandler } from './middleware/error.js';
 
@@ -45,7 +47,7 @@ if (!config.isTest) {
 // donc il est monté AVANT le middleware express.json().
 app.post('/api/orders/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Sonde de santé utilisée par Render / Docker / le script de smoke test.
@@ -65,6 +67,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/category-groups', categoryGroupRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

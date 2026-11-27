@@ -45,7 +45,15 @@ const productSchema = new mongoose.Schema(
         message: 'Le stock doit être un nombre entier'
       }
     },
-    imageUrl: { type: String, trim: true, default: '' }
+    imageUrl: { type: String, trim: true, default: '' },
+    imageUrls: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (value) => Array.isArray(value) && value.length <= 5,
+        message: '5 images maximum par produit'
+      }
+    }
   },
   { timestamps: true }
 );

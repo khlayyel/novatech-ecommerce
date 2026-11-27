@@ -26,6 +26,8 @@ import {
   exportProductsCsv,
   exportUsersCsv
 } from '../controllers/export.controller.js';
+import { uploadImage } from '../controllers/media.controller.js';
+import { upsertCategoryGroup } from '../controllers/category-group.controller.js';
 
 const router = Router();
 
@@ -56,5 +58,8 @@ router.get('/audit', listAuditLogs);
 router.get('/export/orders.csv', exportOrdersCsv);
 router.get('/export/products.csv', exportProductsCsv);
 router.get('/export/users.csv', exportUsersCsv);
+
+router.post('/uploads', uploadImage);
+router.put('/category-groups', upsertCategoryGroup);
 
 export default router;

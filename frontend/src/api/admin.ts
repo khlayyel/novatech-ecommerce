@@ -6,6 +6,7 @@ import type {
   AdminStats,
   AdminUsersResponse,
   AuditLogsResponse,
+  CategoryGroup,
   CategoryInfo,
   CategoryInput,
   OrderStatus,
@@ -115,4 +116,33 @@ export const downloadCsv = async (path: string, filename: string): Promise<void>
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+};
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+    reader.readAsDataURL(file);
+  });
+
+/** Envoie une image (fichier local) et renvoie son URL publique. */
+export const uploadImage = async (file: File): Promise<string> => {
+  const dataUrl = await readFileAsDataUrl(file);
+  const { data } = await api.post<{ url: string }>('/admin/uploads', {
+    dataUrl,
+    filename: file.name
+  });
+  return data.url;
+};
+
+/** Visuels des catégories de niveau 1. */
+export const listCategoryGroups = async (): Promise<CategoryGroup[]> => {
+  const { data } = await api.get<CategoryGroup[]>('/category-groups');
+  return data;
+};
+
+export const upsertCategoryGroup = async (name: string, imageUrl: string): Promise<CategoryGroup> => {
+  const { data } = await api.put<CategoryGroup>('/admin/category-groups', { name, imageUrl });
+  return data;
 };

@@ -30,6 +30,16 @@ const categorySchema = new mongoose.Schema(
     subcategories: {
       type: [String],
       default: []
+    },
+    imageUrl: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    subcategoryImages: {
+      type: Map,
+      of: String,
+      default: {}
     }
   },
   { timestamps: true }

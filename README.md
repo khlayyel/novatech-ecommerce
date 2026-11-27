@@ -48,8 +48,8 @@ novatech-ecommerce/
 ├── backend/                    # API REST (Express + Mongoose + Stripe)
 │   ├── src/
 │   │   ├── config/             # env.js (config centralisée), db.js (connexion)
-│   │   ├── models/             # Product, Category, Cart, Order, User, AuditLog
-│   │   ├── controllers/        # produit, catégorie, panier, commande, auth, admin
+│   │   ├── models/             # Product, Category, CategoryGroup, Cart, Order, User, AuditLog, Media
+│   │   ├── controllers/        # produit, catégorie, groupe, panier, commande, auth, admin, média, export
 │   │   ├── routes/             # produit, catégorie, panier, commande, auth, admin
 │   │   ├── middleware/         # auth (JWT + admin), cart (X-Cart-Id), errors, rate limits
 │   │   ├── services/           # stripe.service, order.service (idempotence), audit.service
@@ -64,7 +64,7 @@ novatech-ecommerce/
 │   │   ├── api/                # client Axios central (+ produits, panier, commandes, auth, admin)
 │   │   ├── components/         # Navbar, ProductCard, CheckoutForm, ProtectedRoute…
 │   │   ├── components/admin/   # AdminIcon, BarChart (graphiques sans dépendance)
-│   │   ├── components/ui/      # Panel repliable, DataTable (tri + pagination)
+│   │   ├── components/ui/      # Panel repliable, DataTable, ImageDropzone, IconButton, LocaleSwitcher
 │   │   ├── context/            # AuthContext (JWT), CartContext, ToastContext
 │   │   ├── i18n/               # ressources fr/en/ar + provider + hook useI18n
 │   │   ├── pages/              # Accueil, fiche produit, panier, paiement, suivi, auth
@@ -134,6 +134,10 @@ Base : `http://localhost:5000/api`
 | POST | `/admin/products` | JWT **admin** | Créer un produit | 201 / 400 / 403 |
 | PUT | `/admin/products/:id` | JWT **admin** | Modifier un produit | 200 / 400 / 403 / 404 |
 | DELETE | `/admin/products/:id` | JWT **admin** | Supprimer un produit | 200 / 403 / 404 |
+| POST | `/admin/uploads` | JWT **admin** | Envoyer une image (base64 → média persistant, 2 Mo max) | 201 / 400 / 403 |
+| GET | `/media/:id` | — | Servir une image stockée (cache immuable) | 200 / 400 / 404 |
+| GET | `/category-groups` | — | Visuels des catégories de niveau 1 | 200 |
+| PUT | `/admin/category-groups` | JWT **admin** | Enregistrer le visuel d'une catégorie | 200 / 400 / 403 |
 | GET | `/categories` | — | Familles et sous-familles publiques | 200 |
 | GET | `/admin/categories` | JWT **admin** | Liste complète des familles | 200 / 403 |
 | POST | `/admin/categories` | JWT **admin** | Créer une famille (sous-familles incluses) | 201 / 400 / 403 |
@@ -166,6 +170,8 @@ Un rôle `admin` ouvre `/admin`, protégé côté client **et** côté serveur :
 Les écrans **Produits**, **Commandes** et **Clients** proposent un **export CSV** (séparateur `;`, BOM UTF-8) directement ouvrable dans Excel.
 
 **CRUD en pages dédiées** : chaque ajout et chaque modification ouvre sa propre page (`/new`, `/:id/edit`) avec son endpoint dédié (`POST`, `PUT`, `DELETE`). Le formulaire d'édition est chargé depuis l'API et **prérempli avec les données réelles** de l'élément ; l'annulation ramène à la liste.
+
+**Images par glisser-déposer** : un composant unique `ImageDropzone` équipe les formulaires. Les fichiers sont envoyés à l'API et stockés en base (médias persistants, 2 Mo max, PNG/JPEG/WebP/GIF). Un produit accepte **jusqu'à 5 images** (la première sert de visuel principal, réordonnancement par glisser) ; une famille, une sous-famille et une catégorie de niveau 1 ont chacune leur visuel.
 
 **Hiérarchie du catalogue** : `Catégorie` (niveau 1, champ `Category.group`) → `Famille` (`Category.name`) → `Sous-famille` (`Product.subcategory`). Les filtres sont en cascade dans le catalogue public, les produits, les stocks et les catégories : la famille n'est sélectionnable qu'après la catégorie, la sous-famille qu'après la famille.
 

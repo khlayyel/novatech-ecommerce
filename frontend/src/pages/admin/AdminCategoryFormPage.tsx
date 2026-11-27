@@ -2,10 +2,19 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Panel from '../../components/ui/Panel';
+import ImageDropzone from '../../components/ui/ImageDropzone';
 import Spinner from '../../components/Spinner';
-import { createCategory, getCategory, listCategories, updateCategory } from '../../api/admin';
+import {
+  createCategory,
+  getCategory,
+  listCategories,
+  listCategoryGroups,
+  updateCategory,
+  upsertCategoryGroup
+} from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
+import type { CategoryGroup } from '../../types';
 
 interface CategoryForm {
   group: string;
@@ -24,8 +33,8 @@ const parseSubcategories = (value: string) =>
 
 /**
  * Page dédiée à la création (`/admin/categories/new`) ou à la modification
- * (`/admin/categories/:id/edit`) d'une famille. Le formulaire d'édition est
- * prérempli avec les données réelles de la famille.
+ * (`/admin/categories/:id/edit`) d'une famille, avec upload d'images pour la
+ * catégorie de niveau 1, la famille et chaque sous-famille.
  */
 const AdminCategoryFormPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +43,10 @@ const AdminCategoryFormPage = () => {
   const { showToast } = useToast();
 
   const [form, setForm] = useState<CategoryForm>(EMPTY_FORM);
-  const [groups, setGroups] = useState<string[]>([]);
+  const [groups, setGroups] = useState<CategoryGroup[]>([]);
+  const [groupImage, setGroupImage] = useState('');
+  const [familyImage, setFamilyImage] = useState('');
+  const [subcategoryImages, setSubcategoryImages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(isEdit);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -44,9 +56,18 @@ const AdminCategoryFormPage = () => {
 
     const load = async () => {
       try {
-        const tree = await listCategories();
+        const [tree, groupList] = await Promise.all([listCategories(), listCategoryGroups()]);
         if (cancelled) return;
-        setGroups([...new Set(tree.map((item) => item.group || '').filter(Boolean))].sort());
+
+        const merged = [...groupList];
+        for (const category of tree) {
+          const name = String(category.group || '').trim();
+          if (name && !merged.some((group) => group.name === name)) {
+            merged.push({ name, imageUrl: '' });
+          }
+        }
+        merged.sort((left, right) => left.name.localeCompare(right.name, 'fr'));
+        setGroups(merged);
 
         if (id) {
           const category = await getCategory(id);
@@ -57,6 +78,9 @@ const AdminCategoryFormPage = () => {
             description: category.description,
             subcategories: category.subcategories.join(', ')
           });
+          setFamilyImage(category.imageUrl || '');
+          setSubcategoryImages(category.subcategoryImages || {});
+          setGroupImage(groupList.find((group) => group.name === category.group)?.imageUrl || '');
         }
       } catch (err) {
         if (!cancelled) setError(getErrorMessage(err, 'Impossible de charger cette famille.'));
@@ -71,6 +95,15 @@ const AdminCategoryFormPage = () => {
     };
   }, [id]);
 
+  // Le visuel de la catégorie de niveau 1 suit le nom saisi.
+  useEffect(() => {
+    const found = groups.find((group) => group.name === form.group.trim());
+    setGroupImage(found?.imageUrl || '');
+  }, [form.group, groups]);
+
+  const subcategories = parseSubcategories(form.subcategories);
+  const hasGroup = form.group.trim().length >= 2;
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (form.name.trim().length < 2) {
@@ -80,11 +113,19 @@ const AdminCategoryFormPage = () => {
 
     setSaving(true);
     try {
+      const prunedImages = Object.fromEntries(
+        Object.entries(subcategoryImages).filter(
+          ([name, url]) => subcategories.includes(name) && Boolean(url)
+        )
+      );
+
       const payload = {
         group: form.group.trim(),
         name: form.name.trim(),
         description: form.description.trim(),
-        subcategories: parseSubcategories(form.subcategories)
+        subcategories,
+        imageUrl: familyImage,
+        subcategoryImages: prunedImages
       };
 
       if (isEdit && id) {
@@ -93,6 +134,14 @@ const AdminCategoryFormPage = () => {
       } else {
         await createCategory(payload);
         showToast(`Famille « ${payload.name} » créée.`, 'success');
+      }
+
+      const groupName = form.group.trim();
+      if (groupName.length >= 2) {
+        const existing = groups.find((group) => group.name === groupName);
+        if (groupImage && groupImage !== (existing?.imageUrl || '')) {
+          await upsertCategoryGroup(groupName, groupImage);
+        }
       }
 
       navigate('/admin/categories');
@@ -121,8 +170,6 @@ const AdminCategoryFormPage = () => {
       </Panel>
     );
   }
-
-  const preview = parseSubcategories(form.subcategories);
 
   return (
     <div className="admin-panel">
@@ -156,7 +203,7 @@ const AdminCategoryFormPage = () => {
               />
               <datalist id="category-groups">
                 {groups.map((group) => (
-                  <option key={group} value={group} />
+                  <option key={group.name} value={group.name} />
                 ))}
               </datalist>
             </label>
@@ -182,7 +229,7 @@ const AdminCategoryFormPage = () => {
               />
             </label>
 
-            <label className="field admin-form__wide">
+            <label className="field">
               <span>Sous-familles (séparées par des virgules)</span>
               <input
                 className="input"
@@ -192,13 +239,63 @@ const AdminCategoryFormPage = () => {
               />
             </label>
 
+            <div className="admin-form__wide">
+              {hasGroup ? (
+                <ImageDropzone
+                  value={groupImage ? [groupImage] : []}
+                  onChange={(urls) => setGroupImage(urls[0] || '')}
+                  max={1}
+                  label="Image de la catégorie (niveau 1)"
+                  hint="Visuel commun à toutes les familles de cette catégorie."
+                />
+              ) : (
+                <p className="muted small">Renseignez la catégorie de niveau 1 pour ajouter son visuel.</p>
+              )}
+            </div>
+
+            <div className="admin-form__wide">
+              <ImageDropzone
+                value={familyImage ? [familyImage] : []}
+                onChange={(urls) => setFamilyImage(urls[0] || '')}
+                max={1}
+                label="Image de la famille"
+                hint="Visuel affiché pour cette famille."
+              />
+            </div>
+
+            {subcategories.length > 0 && (
+              <div className="admin-form__wide">
+                <span className="field__label">Images des sous-familles</span>
+                <div className="subcategory-images">
+                  {subcategories.map((name) => (
+                    <div key={name} className="subcategory-image">
+                      <strong>{name}</strong>
+                      <ImageDropzone
+                        value={subcategoryImages[name] ? [subcategoryImages[name]] : []}
+                        onChange={(urls) =>
+                          setSubcategoryImages((current) => {
+                            const next = { ...current };
+                            if (urls[0]) next[name] = urls[0];
+                            else delete next[name];
+                            return next;
+                          })
+                        }
+                        max={1}
+                        label={`Image — ${name}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="field admin-form__wide">
-              <span>Aperçu ({preview.length} sous-famille(s))</span>
-              {preview.length === 0 ? (
+              <span>Aperçu des sous-familles ({subcategories.length})</span>
+              {subcategories.length === 0 ? (
                 <p className="muted small">Aucune sous-famille saisie.</p>
               ) : (
                 <ul className="chip-row chip-row--static">
-                  {preview.map((name) => (
+                  {subcategories.map((name) => (
                     <li key={name} className="chip chip--static">{name}</li>
                   ))}
                 </ul>

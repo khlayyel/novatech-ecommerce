@@ -78,7 +78,12 @@ const AdminCategoriesPage = () => {
         key: 'name',
         label: 'Famille',
         sortValue: (category) => category.name,
-        render: (category) => <strong>{category.name}</strong>
+        render: (category) => (
+          <div className="admin-user__cell">
+            {category.imageUrl && <img className="category-thumb" src={category.imageUrl} alt="" />}
+            <strong>{category.name}</strong>
+          </div>
+        )
       },
       {
         key: 'description',

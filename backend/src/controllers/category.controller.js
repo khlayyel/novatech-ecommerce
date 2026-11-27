@@ -33,6 +33,29 @@ const normalizeSubcategories = (input) => {
   return result;
 };
 
+const normalizeImageMap = (input) => {
+  if (input === undefined) return undefined;
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new ApiError(400, 'Images de sous-familles invalides');
+  }
+
+  const result = {};
+  for (const [key, value] of Object.entries(input)) {
+    const name = normalizeName(key);
+    const url = normalizeName(value);
+    if (name && url) result[name] = url;
+  }
+  return result;
+};
+
+const pruneImageMap = (map, subcategories) => {
+  if (!map) return {};
+  const allowed = new Set(subcategories.map((name) => name.toLowerCase()));
+  return Object.fromEntries(
+    Object.entries(map).filter(([key]) => allowed.has(key.toLowerCase()))
+  );
+};
+
 /**
  * GET /api/categories — arbre des familles et sous-familles (public).
  */
@@ -62,11 +85,16 @@ export const createCategory = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Le nom de la catégorie est requis (2 caractères minimum)');
   }
 
+  const subcategories = normalizeSubcategories(req.body.subcategories) ?? [];
+  const images = normalizeImageMap(req.body.subcategoryImages) ?? {};
+
   const category = await Category.create({
     group: normalizeName(req.body.group),
     name,
     description: normalizeName(req.body.description),
-    subcategories: normalizeSubcategories(req.body.subcategories) ?? []
+    subcategories,
+    imageUrl: normalizeName(req.body.imageUrl),
+    subcategoryImages: pruneImageMap(images, subcategories)
   });
 
   await logAdminAction(req, 'category.create', category.name);
@@ -100,6 +128,16 @@ export const updateCategory = asyncHandler(async (req, res) => {
   const subcategories = normalizeSubcategories(req.body.subcategories);
   if (subcategories !== undefined) {
     category.subcategories = subcategories;
+  }
+  if (req.body.imageUrl !== undefined) {
+    category.imageUrl = normalizeName(req.body.imageUrl);
+  }
+  const incomingImages = normalizeImageMap(req.body.subcategoryImages);
+  if (incomingImages !== undefined) {
+    category.subcategoryImages = pruneImageMap(
+      incomingImages,
+      subcategories ?? category.subcategories
+    );
   }
   await category.save();
 

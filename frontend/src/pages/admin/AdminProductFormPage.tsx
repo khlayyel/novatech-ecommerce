@@ -8,6 +8,7 @@ import { createProduct, listCategories, updateProduct } from '../../api/admin';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/request';
 import { formatPrice } from '../../utils/format';
+import ImageDropzone from '../../components/ui/ImageDropzone';
 import type { CategoryInfo } from '../../types';
 
 const FALLBACK_CATEGORIES = ['Ordinateurs', 'Écrans', 'Périphériques', 'Composants', 'Réseau', 'Impression'];
@@ -19,7 +20,6 @@ interface ProductForm {
   category: string;
   subcategory: string;
   stock: string;
-  imageUrl: string;
 }
 
 const EMPTY_FORM: ProductForm = {
@@ -28,8 +28,7 @@ const EMPTY_FORM: ProductForm = {
   price: '',
   category: FALLBACK_CATEGORIES[0],
   subcategory: '',
-  stock: '',
-  imageUrl: ''
+  stock: ''
 };
 
 /**
@@ -45,6 +44,7 @@ const AdminProductFormPage = () => {
 
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [form, setForm] = useState<ProductForm>(EMPTY_FORM);
+  const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -69,9 +69,15 @@ const AdminProductFormPage = () => {
             price: String(product.price),
             category: String(product.category),
             subcategory: product.subcategory || '',
-            stock: String(product.stock),
-            imageUrl: product.imageUrl
+            stock: String(product.stock)
           });
+          setImages(
+            product.imageUrls && product.imageUrls.length > 0
+              ? product.imageUrls
+              : product.imageUrl
+                ? [product.imageUrl]
+                : []
+          );
         } else {
           setForm({ ...EMPTY_FORM, category: tree[0]?.name || FALLBACK_CATEGORIES[0] });
         }
@@ -124,7 +130,7 @@ const AdminProductFormPage = () => {
         category: form.category,
         subcategory: form.subcategory,
         stock,
-        imageUrl: form.imageUrl.trim()
+        imageUrls: images
       };
 
       if (isEdit && id) {
@@ -252,8 +258,8 @@ const AdminProductFormPage = () => {
             <div className="field">
               <span>Aperçu</span>
               <div className="form-preview">
-                {form.imageUrl ? (
-                  <img src={form.imageUrl} alt="" />
+                {images[0] ? (
+                  <img src={images[0]} alt="" />
                 ) : (
                   <span className="muted small">Aucune image</span>
                 )}
@@ -268,15 +274,15 @@ const AdminProductFormPage = () => {
               </div>
             </div>
 
-            <label className="field admin-form__wide">
-              <span>Image (chemin ou URL)</span>
-              <input
-                className="input"
-                value={form.imageUrl}
-                onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
-                placeholder="/images/products/mon-produit.svg"
+            <div className="admin-form__wide">
+              <ImageDropzone
+                value={images}
+                onChange={setImages}
+                max={5}
+                label="Images du produit"
+                hint="La première image sert de visuel principal. Glissez une vignette pour la réordonner."
               />
-            </label>
+            </div>
 
             <label className="field admin-form__wide">
               <span>Description</span>
