@@ -18,11 +18,11 @@ Une boutique complète : catalogue filtrable, panier invité **ou** connecté (J
 | 4. Intégration Stripe | PaymentIntents, commandes *pending*, webhook signé | `backend/src/services/stripe.service.js` |
 | 5. Tests backend | Jest + Supertest, Stripe moqué, MongoDB en mémoire | `backend/tests/` |
 | 6. Init frontend React | React + TypeScript + Vite + Axios + routage | `frontend/src/` |
-| 7. Composants principaux | Catalogue, panier, paiement Stripe Elements, confirmation | `frontend/src/pages/` |
+| 7. Composants principaux | Catalogue, fiche produit, panier, paiement Stripe Elements, confirmation | `frontend/src/pages/` |
 | 8. Tests frontend | Jest + React Testing Library | `frontend/src/__tests__/` |
 | 9. Automatisation & CI/CD | Dockerfiles, docker-compose, GitHub Actions | `Dockerfile.*`, `.github/workflows/` |
 | 10. Déploiement effectif | Render (API) + Vercel (web) + Atlas | `render.yaml`, `frontend/vercel.json` |
-| 11. Bonus | ✅ Décrémentation du stock · ✅ Suivi de commande · ✅ Authentification JWT | `backend/src/services/order.service.js`, `frontend/src/pages/OrderDetailPage.tsx`, `backend/src/middleware/auth.js` |
+| 11. Bonus | ✅ Décrémentation du stock · ✅ Suivi de commande · ✅ Authentification JWT · ✅ Espace d'administration (rôle `admin`) | `backend/src/services/order.service.js`, `frontend/src/pages/OrderDetailPage.tsx`, `backend/src/middleware/auth.js`, `frontend/src/pages/admin/` |
 
 ---
 
@@ -48,25 +48,26 @@ novatech-ecommerce/
 │   ├── src/
 │   │   ├── config/             # env.js (config centralisée), db.js (connexion)
 │   │   ├── models/             # Product, Cart, Order, User (Mongoose)
-│   │   ├── controllers/        # product, cart, order, auth
-│   │   ├── routes/             # product, cart, order, auth
+│   │   ├── controllers/        # produit, panier, commande, authentification, administration
+│   │   ├── routes/             # produit, panier, commande, auth, admin
 │   │   ├── middleware/         # auth (JWT), cart (X-Cart-Id), errors, rate limits
 │   │   ├── services/           # stripe.service, order.service (idempotence)
 │   │   ├── utils/              # asyncHandler
 │   │   ├── app.js              # assemblage Express (CORS, helmet, routes)
 │   │   ├── server.js           # démarrage + arrêt propre
-│   │   └── seed.js             # catalogue de démonstration + compte démo
-│   ├── tests/                  # 5 suites Jest/Supertest (base en mémoire)
+│   │   └── seed.js             # 24 produits + comptes démo et admin
+│   ├── tests/                  # 6 suites Jest/Supertest (base en mémoire)
 │   └── scripts/smoke.mjs       # smoke test de bout en bout (paiement réel test)
 ├── frontend/                   # SPA React + TypeScript
 │   ├── src/
-│   │   ├── api/                # client Axios central (+ produits, panier, commandes, auth)
+│   │   ├── api/                # client Axios central (+ produits, panier, commandes, auth, admin)
 │   │   ├── components/         # Navbar, ProductCard, CheckoutForm, ProtectedRoute…
 │   │   ├── context/            # AuthContext (JWT), CartContext, ToastContext
-│   │   ├── pages/              # Home, Cart, Checkout, Confirmation, Orders, Login…
+│   │   ├── pages/              # Accueil, fiche produit, panier, paiement, suivi, auth
+│   │   ├── pages/admin/        # tableau de bord, produits, commandes (rôle admin)
 │   │   ├── types/              # types partagés
-│   │   └── __tests__/          # 6 suites Jest/RTL
-│   └── public/images/products/ # 12 illustrations SVG du catalogue
+│   │   └── __tests__/          # 10 suites Jest/RTL
+│   └── public/images/products/ # 24 illustrations SVG du catalogue
 ├── .github/workflows/          # ci.yml (tests) + deploy.yml (CD)
 ├── Dockerfile.backend / Dockerfile.frontend / nginx.conf
 ├── docker-compose.yml          # mongo + api + web
@@ -90,7 +91,7 @@ novatech-ecommerce/
 `user?` · `sessionId?` · `items[]` (name, imageUrl, priceAtPurchase, quantity) · `totalAmount` · `currency` · `stripePaymentIntentId` · `trackingToken` (suivi invité) · `status` (`pending → paid → shipped → delivered`, + `failed`) · `paidAt` · `timestamps`
 
 ### User (bonus JWT)
-`name` · `email` (unique, minuscule) · `password` (**bcrypt, jamais renvoyé** — `select: false`)
+`name` · `email` (unique, minuscule) · `password` (**bcrypt, jamais renvoyé** — `select: false`) · `role` (`customer` | `admin`, jamais modifiable via l'inscription publique)
 
 ---
 
@@ -117,6 +118,26 @@ Base : `http://localhost:5000/api`
 | GET | `/orders/mine` | JWT | Historique de l'utilisateur | 200 / 401 |
 | GET | `/orders/:id` | JWT **ou** X-Order-Token | Suivi de commande | 200 / 400 / 404 |
 | POST | `/orders/webhook` | signature Stripe | Webhook (corps brut) : paiement réussi/échoué | 200 / 400 |
+| GET | `/admin/stats` | JWT **admin** | Indicateurs : CA, commandes par statut, stocks faibles, clients | 200 / 401 / 403 |
+| GET | `/admin/orders` | JWT **admin** | Toutes les commandes : `?status=`, `?page=`, `?limit=` | 200 / 400 / 403 |
+| PATCH | `/admin/orders/:id/status` | JWT **admin** | Transition `paid → shipped → delivered` | 200 / 400 / 403 / 404 / 409 |
+| POST | `/admin/products` | JWT **admin** | Créer un produit | 201 / 400 / 403 |
+| PUT | `/admin/products/:id` | JWT **admin** | Modifier un produit | 200 / 400 / 403 / 404 |
+| DELETE | `/admin/products/:id` | JWT **admin** | Supprimer un produit | 200 / 403 / 404 |
+
+---
+
+## 🛡️ Espace d'administration
+
+Un rôle `admin` ouvre `/admin`, protégé côté client **et** côté serveur :
+
+| Écran / route | Contenu |
+|---|---|
+| `/admin` | Indicateurs (chiffre d'affaires, commandes par statut, stocks faibles, clients) et dernières commandes |
+| `/admin/products` | Création, modification et suppression de produits, ajustement des stocks |
+| `/admin/orders` | Toutes les commandes, filtrage par statut, passage *payée → expédiée → livrée* |
+
+Le rôle n'est pas embarqué dans le JWT : `requireAdmin` le relit en base à chaque requête, ce qui permet une révocation immédiate. Un client authentifié reçoit `403` sur `/api/admin/*`.
 
 ---
 
@@ -186,7 +207,7 @@ npm install
 cp backend/.env.example backend/.env    # puis renseignez-le (voir tableau)
 cp frontend/.env.example frontend/.env
 
-# 3. Données de démonstration (12 produits + compte démo)
+# 3. Données de démonstration (24 produits + comptes démo et admin)
 npm run seed
 
 # 4. Lancer backend (5000) + frontend (5173) simultanément
@@ -215,6 +236,7 @@ Application : **http://localhost:5173** — API : **http://localhost:5000/api/he
 | `VITE_STRIPE_PUBLIC_KEY` | Clé **publique** Stripe (test) | `pk_test_…` |
 
 > **Compte de démonstration** (créé par le seed) : `demo@novatech.fr` / `Demo1234!`
+> **Compte administrateur** : `admin@novatech.fr` / `Admin1234!` — accès à l'espace `/admin` (tableau de bord, produits, commandes).
 
 ---
 
@@ -234,7 +256,8 @@ npm test --prefix frontend
 | `backend/tests/cart.test.js` | CRUD complet invité + connecté, validation des quantités, stock 409, isolation entre utilisateurs |
 | `backend/tests/checkout.test.js` | Montant **recalculé serveur** (falsification ignorée), stock insuffisant 409, confirmation idempotente, autorisations |
 | `backend/tests/webhook.test.js` | Signature invalide 400, `paid` + décrémentation + panier vidé, **rejeu idempotent**, paiement échoué |
-| `frontend/src/__tests__/*.tsx` | Catalogue, panier, formulaire Stripe (succès/refus), authentification, routage, 404 |
+| `backend/tests/admin.test.js` | 401/403, statistiques, CRUD produits, transitions de statut `paid → shipped → delivered` |
+| `frontend/src/__tests__/*.tsx` | Catalogue, fiche produit, panier, formulaire Stripe, authentification, garde admin, suivi, 404 |
 
 Le backend est testé avec **MongoDB en mémoire** (`mongodb-memory-server`) et le service Stripe **moqué** : aucun appel réseau, aucune base réelle. Le frontend est testé en jsdom avec React Testing Library.
 
@@ -247,7 +270,7 @@ cd backend
 npm run smoke
 ```
 
-Le script déroule **le parcours complet** attendu à la soutenance : santé → catalogue → auth → CRUD panier → checkout → **paiement réel avec `pm_card_visa`** → confirmation → stock décrémenté → panier vidé → **webhook avec signature HMAC réelle** → idempotence → suivi de commande, et affiche un tableau de vérifications (28 contrôles).
+Le script déroule **le parcours complet** attendu à la soutenance : santé → catalogue → auth → CRUD panier → checkout → **paiement réel avec `pm_card_visa`** → confirmation → stock décrémenté → panier vidé → **webhook avec signature HMAC réelle** → idempotence → suivi de commande, et affiche un tableau de vérifications (55 contrôles).
 
 ---
 

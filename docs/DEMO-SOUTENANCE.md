@@ -8,7 +8,7 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 
 ## 1. Catalogue (≈ 1 min)
 
-1. Arriver sur l'accueil : présenter le héro puis le catalogue (12 produits, 6 catégories).
+1. Arriver sur l'accueil : présenter le héro puis le catalogue (24 produits, 6 catégories).
 2. **Filtres** : cliquer sur « Écrans » → la grille se filtre ; revenir sur « Tous ».
 3. **Recherche** : taper « nova » (anti-rebond) → résultats instantanés.
 4. **Tri** : « Prix croissant » → la grille se réorganise.
@@ -44,10 +44,18 @@ Avant de commencer : vider le panier si nécessaire (bouton « Vider le panier �
 2. Le formulaire affiche l'erreur Stripe ; la commande passe en *Paiement échoué* ; **le stock n'a pas bougé**.
 3. Repayer avec 4242 → succès.
 
+## 6 bis. Espace d'administration (≈ 1 min)
+
+1. Se déconnecter, puis se connecter avec `admin@novatech.fr` / `Admin1234!` → le lien **Administration** apparaît dans la navbar.
+2. `/admin` : chiffre d'affaires, commandes par statut, produits en stock faible.
+3. `/admin/products` : modifier le stock d'un produit (le changement est visible immédiatement au catalogue) puis le remettre.
+4. `/admin/orders` : passer une commande *payée* en **Expédiée** puis **Livrée** ; ouvrir le suivi côté client pour montrer la chronologie mise à jour.
+5. Montrer qu'un client normal n'a pas le lien et reçoit une redirection / un `403` sur `/api/admin/stats`.
+
 ## 7. Qualité & DevOps (échange, ≈ 1 min)
 
-- `npm test` : montrer les 5 suites backend (Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 6 suites frontend (RTL).
-- `npm run smoke` : montrer le tableau de 28 vérifications dont le **paiement réel** et le **webhook signé**.
+- `npm test` : montrer les 6 suites backend (Jest/Supertest, MongoDB en mémoire, Stripe moqué) et les 10 suites frontend (RTL).
+- `npm run smoke` : montrer le tableau de 55 vérifications dont le **paiement réel** et le **webhook signé**.
 - CI GitHub Actions : lint + tests + build à chaque push ; déploiement Render/Vercel sur `main` via secrets.
 - Docker : `docker compose up --build` → stack complète mongo/api/web.
 
