@@ -136,14 +136,42 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
  * meilleures ventes et valeur du stock par famille.
  */
 export const getAdminAnalytics = asyncHandler(async (req, res) => {
-  const days = Math.min(90, Math.max(7, Number.parseInt(req.query.days, 10) || 14));
-  const since = new Date();
-  since.setUTCHours(0, 0, 0, 0);
-  since.setUTCDate(since.getUTCDate() - (days - 1));
+  const parseDate = (value) => {
+    if (!value) return null;
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const fromParam = parseDate(req.query.from);
+  const toParam = parseDate(req.query.to);
+
+  let since;
+  let until;
+  let days;
+
+  if (fromParam && toParam && toParam >= fromParam) {
+    since = fromParam;
+    until = new Date(toParam);
+    until.setUTCHours(23, 59, 59, 999);
+    days = Math.floor((until.getTime() - since.getTime()) / 86400000) + 1;
+    days = Math.min(90, Math.max(1, days));
+  } else {
+    days = Math.min(90, Math.max(1, Number.parseInt(req.query.days, 10) || 14));
+    until = new Date();
+    until.setUTCHours(23, 59, 59, 999);
+    since = new Date();
+    since.setUTCHours(0, 0, 0, 0);
+    since.setUTCDate(since.getUTCDate() - (days - 1));
+  }
+
+  const paidMatch = {
+    status: { $in: PAID_STATUSES },
+    createdAt: { $gte: since, $lte: until }
+  };
 
   const [daily, statusAgg, topAgg, categoryAgg, totalsAgg] = await Promise.all([
     Order.aggregate([
-      { $match: { status: { $in: PAID_STATUSES }, createdAt: { $gte: since } } },
+      { $match: paidMatch },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'UTC' } },
@@ -154,7 +182,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
     ]),
     Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
     Order.aggregate([
-      { $match: { status: { $in: PAID_STATUSES } } },
+      { $match: paidMatch },
       { $unwind: '$items' },
       {
         $group: {
@@ -178,7 +206,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
       { $sort: { value: -1 } }
     ]),
     Order.aggregate([
-      { $match: { status: { $in: PAID_STATUSES } } },
+      { $match: paidMatch },
       {
         $group: {
           _id: null,
@@ -208,6 +236,8 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
 
   res.json({
     days,
+    from: since.toISOString().slice(0, 10),
+    to: until.toISOString().slice(0, 10),
     series,
     statusBreakdown: Object.fromEntries(statusAgg.map((entry) => [entry._id, entry.count])),
     topProducts: topAgg.map((entry) => ({

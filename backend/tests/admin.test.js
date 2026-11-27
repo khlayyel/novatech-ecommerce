@@ -262,6 +262,35 @@ describe('Gestion des commandes (admin)', () => {
 });
 
 describe('Analytics, utilisateurs et journal d\'audit', () => {
+  it('filtre les indicateurs par intervalle de dates', async () => {
+    const product = await createProduct({ price: 100 });
+    const order = await Order.create({
+      ...orderPayload({ productId: product._id }),
+      status: 'paid',
+      totalAmount: 100
+    });
+    await Order.collection.updateOne(
+      { _id: order._id },
+      { $set: { createdAt: new Date('2026-01-10T10:00:00.000Z') } }
+    );
+
+    const admin = await loginAdmin(app);
+    const inRange = await request(app)
+      .get('/api/admin/analytics?from=2026-01-01&to=2026-01-31')
+      .set(bearer(admin.body.token));
+
+    expect(inRange.statusCode).toBe(200);
+    expect(inRange.body.totals.revenue).toBe(100);
+    expect(inRange.body.series).toHaveLength(31);
+
+    const outOfRange = await request(app)
+      .get('/api/admin/analytics?from=2026-02-01&to=2026-02-28')
+      .set(bearer(admin.body.token));
+
+    expect(outOfRange.statusCode).toBe(200);
+    expect(outOfRange.body.totals.revenue).toBe(0);
+  });
+
   it('agrège les indicateurs analytiques', async () => {
     const product = await createProduct({ price: 100 });
     await Order.create({ ...orderPayload({ productId: product._id }), status: 'paid', totalAmount: 200 });

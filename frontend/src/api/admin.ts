@@ -22,8 +22,10 @@ export const getStats = async (): Promise<AdminStats> => {
   return data;
 };
 
-export const getAnalytics = async (days = 14): Promise<AdminAnalytics> => {
-  const { data } = await api.get<AdminAnalytics>('/admin/analytics', { params: { days } });
+export const getAnalytics = async (
+  params: { days?: number; from?: string; to?: string } = { days: 14 }
+): Promise<AdminAnalytics> => {
+  const { data } = await api.get<AdminAnalytics>('/admin/analytics', { params });
   return data;
 };
 

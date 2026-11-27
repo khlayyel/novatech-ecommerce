@@ -3152,6 +3152,41 @@ textarea.input {
   cursor: not-allowed;
 }
 
+/* Champs de date avec calendrier */
+.date-range {
+  align-items: start;
+}
+
+.date-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-field .input {
+  width: 100%;
+  padding-right: 2.4rem;
+}
+
+.date-field__icon {
+  position: absolute;
+  right: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.date-field__icon:hover {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
 @media (max-width: 640px) {
   .assistant-panel {
     left: 12px;

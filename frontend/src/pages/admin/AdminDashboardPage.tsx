@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import Panel from '../../components/ui/Panel';
 import DataTable from '../../components/ui/DataTable';
@@ -33,22 +34,58 @@ const buildGradient = (breakdown: Record<string, number>) => {
   return `conic-gradient(${parts.join(', ')})`;
 };
 
+/** Formatte une date en `YYYY-MM-DD` (heure locale). */
+const toIsoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const shortDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+
+const TODAY = new Date();
+const DEFAULT_TO = toIsoDate(TODAY);
+const DEFAULT_FROM = toIsoDate(new Date(TODAY.getTime() - 13 * 86400000));
+
 /** Tableau de bord : indicateurs, courbe, répartition, ventes et stocks. */
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
-  const [days, setDays] = useState(14);
+  const [from, setFrom] = useState(DEFAULT_FROM);
+  const [to, setTo] = useState(DEFAULT_TO);
   const [error, setError] = useState<string | null>(null);
+
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
+  const rangeValid = Boolean(from && to && from <= to);
+
+  const openPicker = (ref: RefObject<HTMLInputElement | null>) => {
+    const input = ref.current;
+    if (!input) return;
+    try {
+      if (typeof input.showPicker === 'function') input.showPicker();
+      else input.focus();
+    } catch {
+      input.focus();
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
+      if (!rangeValid) return;
       try {
-        const [statsData, analyticsData] = await Promise.all([getStats(), getAnalytics(days)]);
+        const [statsData, analyticsData] = await Promise.all([
+          getStats(),
+          getAnalytics({ from, to })
+        ]);
         if (cancelled) return;
         setStats(statsData);
         setAnalytics(analyticsData);
+        setError(null);
       } catch (err) {
         if (!cancelled) setError(getErrorMessage(err, 'Impossible de charger les indicateurs.'));
       }
@@ -58,7 +95,7 @@ const AdminDashboardPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [days]);
+  }, [from, to, rangeValid]);
 
   const points = useMemo(
     () =>
@@ -146,20 +183,91 @@ const AdminDashboardPage = () => {
     <div className="admin-dashboard">
       <Panel
         title="Filtres"
-        subtitle="Période d'analyse des ventes"
+        subtitle="Sélectionnez la date de début et la date de fin"
         storageKey="dashboard-filters"
-        actions={<span className="muted small">Données depuis le {new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('fr-FR')}</span>}
+        actions={
+          <span className="muted small">
+            {rangeValid ? `Du ${shortDate(from)} au ${shortDate(to)}` : 'Dates invalides'}
+          </span>
+        }
       >
-        <div className="filter-grid filter-grid--two">
+        <div className="filter-grid filter-grid--two date-range">
           <label className="field">
-            <span>Période</span>
-            <select className="input input--select" value={days} onChange={(event) => setDays(Number(event.target.value))}>
-              <option value={7}>7 derniers jours</option>
-              <option value={14}>14 derniers jours</option>
-              <option value={30}>30 derniers jours</option>
-            </select>
+            <span>Date de début</span>
+            <div
+              className="date-field"
+              onClick={(event) => {
+                if (event.target !== fromRef.current) openPicker(fromRef);
+              }}
+            >
+              <input
+                ref={fromRef}
+                type="date"
+                className="input"
+                value={from}
+                max={to || undefined}
+                onChange={(event) => setFrom(event.target.value)}
+                aria-label="Date de début"
+              />
+              <button
+                type="button"
+                className="date-field__icon"
+                aria-label="Choisir la date de début"
+                title="Choisir la date de début"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openPicker(fromRef);
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M8 3v4M16 3v4M3 10h18" />
+                </svg>
+              </button>
+            </div>
+          </label>
+
+          <label className="field">
+            <span>Date de fin</span>
+            <div
+              className="date-field"
+              onClick={(event) => {
+                if (event.target !== toRef.current) openPicker(toRef);
+              }}
+            >
+              <input
+                ref={toRef}
+                type="date"
+                className="input"
+                value={to}
+                min={from || undefined}
+                onChange={(event) => setTo(event.target.value)}
+                aria-label="Date de fin"
+              />
+              <button
+                type="button"
+                className="date-field__icon"
+                aria-label="Choisir la date de fin"
+                title="Choisir la date de fin"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openPicker(toRef);
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M8 3v4M16 3v4M3 10h18" />
+                </svg>
+              </button>
+            </div>
           </label>
         </div>
+
+        {!rangeValid && (
+          <p className="form-error" role="alert">
+            La date de fin doit être postérieure à la date de début.
+          </p>
+        )}
       </Panel>
 
       <Panel title="Indicateurs" subtitle="Vue d'ensemble de la boutique" storageKey="dashboard-stats">
@@ -196,7 +304,7 @@ const AdminDashboardPage = () => {
 
       <div className="admin-grid admin-grid--two">
         <Panel
-          title={`Chiffre d'affaires — ${days} derniers jours`}
+          title={`Chiffre d'affaires — du ${shortDate(from)} au ${shortDate(to)}`}
           subtitle="Commandes payées, expédiées et livrées"
           storageKey="dashboard-revenue"
           actions={<span className="badge-soft">{formatPrice(analytics.series.reduce((sum, point) => sum + point.revenue, 0))}</span>}

@@ -180,6 +180,8 @@ export interface AnalyticsSeriesPoint {
 
 export interface AdminAnalytics {
   days: number;
+  from?: string;
+  to?: string;
   series: AnalyticsSeriesPoint[];
   statusBreakdown: Record<string, number>;
   topProducts: { name: string; quantity: number; revenue: number }[];
