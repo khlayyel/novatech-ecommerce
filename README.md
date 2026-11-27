@@ -278,9 +278,24 @@ docker compose up --build
 Le déploiement ne s'active que si les secrets correspondants sont configurés (`Settings → Secrets and variables → Actions`) :
 `RENDER_BACKEND_HOOK`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, et les variables `DEPLOY_RENDER` / `DEPLOY_VERCEL` à `true`. **Aucun secret n'apparaît dans le YAML.**
 
+En l'état, Render et Vercel redéploient déjà automatiquement via leur intégration Git ; `deploy.yml` permet de rendre ce déclenchement explicite et de bloquer un déploiement si les tests échouent.
+
 ---
 
 ## ☁️ Déploiement (Render + Vercel + Atlas + Stripe)
+
+### Déploiement en production (actuel)
+
+| Composant | URL |
+|---|---|
+| Frontend (Vercel) | https://novatech-ecommerce.vercel.app |
+| API (Render) | https://novatech-api-7qa9.onrender.com |
+| Sonde de santé | https://novatech-api-7qa9.onrender.com/api/health |
+| Webhook Stripe | https://novatech-api-7qa9.onrender.com/api/orders/webhook |
+
+Render et Vercel sont reliés au dépôt GitHub : chaque push sur `main` redéploie automatiquement les deux services.
+
+### Procédure reproductible (nouveau compte)
 
 1. **MongoDB Atlas** — créez un cluster gratuit (M0), un utilisateur et récupérez l'URI (`mongodb+srv://…`), autorisez l'IP `0.0.0.0/0` pour Render.
 2. **Backend sur Render** — nouveau Web Service → connectez le repo → *Root directory* `backend` → build `npm ci --omit=dev` → start `npm start` (ou importez le blueprint `render.yaml`). Variables : `NODE_ENV=production`, `MONGODB_URI`, `STRIPE_SECRET_KEY`, `JWT_SECRET`, `STRIPE_WEBHOOK_SECRET`, `FRONTEND_URL=https://votre-app.vercel.app`. Health check : `/api/health`.
