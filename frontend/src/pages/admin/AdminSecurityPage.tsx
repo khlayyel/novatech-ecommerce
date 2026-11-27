@@ -34,6 +34,7 @@ const CONTROLS = [
 const AdminSecurityPage = () => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,20 @@ const AdminSecurityPage = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return logs;
+    return logs.filter((entry) => {
+      const label = ACTION_LABELS[entry.action] || entry.action;
+      return (
+        label.toLowerCase().includes(term) ||
+        entry.target.toLowerCase().includes(term) ||
+        entry.actorEmail.toLowerCase().includes(term) ||
+        entry.ip.toLowerCase().includes(term)
+      );
+    });
+  }, [logs, search]);
 
   const columns: Column<AuditLogEntry>[] = useMemo(
     () => [
@@ -117,6 +132,26 @@ const AdminSecurityPage = () => {
   return (
     <div className="admin-panel">
       <Panel
+        title="Filtres"
+        subtitle="Rechercher une action, une cible ou un auteur"
+        storageKey="security-filters"
+        actions={<span className="muted small">{filtered.length} / {total} entrée(s)</span>}
+      >
+        <div className="filter-grid">
+          <label className="field">
+            <span>Recherche</span>
+            <input
+              type="search"
+              className="input"
+              placeholder="product.create, admin@…, adresse IP…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+        </div>
+      </Panel>
+
+      <Panel
         title="Contrôles de sécurité actifs"
         subtitle="API Express + MongoDB"
         storageKey="security-controls"
@@ -147,10 +182,10 @@ const AdminSecurityPage = () => {
       >
         <DataTable
           columns={columns}
-          rows={logs}
+          rows={filtered}
           rowKey={(entry) => entry._id}
           pageSizeKey="admin-audit"
-          emptyLabel="Aucune action d’administration enregistrée pour le moment."
+          emptyLabel="Aucune entrée ne correspond à cette recherche."
         />
       </Panel>
     </div>

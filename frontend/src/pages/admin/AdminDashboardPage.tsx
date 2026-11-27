@@ -37,6 +37,7 @@ const buildGradient = (breakdown: Record<string, number>) => {
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
+  const [days, setDays] = useState(14);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +45,7 @@ const AdminDashboardPage = () => {
 
     const load = async () => {
       try {
-        const [statsData, analyticsData] = await Promise.all([getStats(), getAnalytics(14)]);
+        const [statsData, analyticsData] = await Promise.all([getStats(), getAnalytics(days)]);
         if (cancelled) return;
         setStats(statsData);
         setAnalytics(analyticsData);
@@ -57,7 +58,7 @@ const AdminDashboardPage = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [days]);
 
   const points = useMemo(
     () =>
@@ -143,6 +144,24 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="admin-dashboard">
+      <Panel
+        title="Filtres"
+        subtitle="Période d'analyse des ventes"
+        storageKey="dashboard-filters"
+        actions={<span className="muted small">Données depuis le {new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('fr-FR')}</span>}
+      >
+        <div className="filter-grid filter-grid--two">
+          <label className="field">
+            <span>Période</span>
+            <select className="input input--select" value={days} onChange={(event) => setDays(Number(event.target.value))}>
+              <option value={7}>7 derniers jours</option>
+              <option value={14}>14 derniers jours</option>
+              <option value={30}>30 derniers jours</option>
+            </select>
+          </label>
+        </div>
+      </Panel>
+
       <Panel title="Indicateurs" subtitle="Vue d'ensemble de la boutique" storageKey="dashboard-stats">
         <div className="stat-grid stat-grid--tight">
           <article className="stat-card">
@@ -177,7 +196,7 @@ const AdminDashboardPage = () => {
 
       <div className="admin-grid admin-grid--two">
         <Panel
-          title="Chiffre d'affaires — 14 derniers jours"
+          title={`Chiffre d'affaires — ${days} derniers jours`}
           subtitle="Commandes payées, expédiées et livrées"
           storageKey="dashboard-revenue"
           actions={<span className="badge-soft">{formatPrice(analytics.series.reduce((sum, point) => sum + point.revenue, 0))}</span>}

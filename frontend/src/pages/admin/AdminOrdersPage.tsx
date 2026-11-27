@@ -35,6 +35,7 @@ const AdminOrdersPage = () => {
 
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -84,6 +85,16 @@ const AdminOrdersPage = () => {
       setExporting(false);
     }
   };
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return orders;
+    return orders.filter((order) => {
+      const reference = order._id.slice(-8).toLowerCase();
+      const customer = order.user ? `${order.user.name} ${order.user.email}`.toLowerCase() : 'invité';
+      return reference.includes(term) || customer.includes(term);
+    });
+  }, [orders, search]);
 
   const columns: Column<AdminOrder>[] = useMemo(
     () => [
@@ -217,14 +228,14 @@ const AdminOrdersPage = () => {
         storageKey="orders-filters"
         actions={
           <>
-            <span className="muted small">{orders.length} commande(s)</span>
+            <span className="muted small">{filtered.length} commande(s)</span>
             <button type="button" className="button button--outline button--sm" onClick={handleExport} disabled={exporting}>
               {exporting ? 'Export…' : 'Exporter CSV'}
             </button>
           </>
         }
       >
-        <div className="filter-grid">
+        <div className="filter-grid filter-grid--two">
           <label className="field">
             <span>Statut</span>
             <select
@@ -237,6 +248,17 @@ const AdminOrdersPage = () => {
               ))}
             </select>
           </label>
+
+          <label className="field">
+            <span>Recherche</span>
+            <input
+              type="search"
+              className="input"
+              placeholder="Référence, client ou email…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
         </div>
       </Panel>
 
@@ -248,7 +270,7 @@ const AdminOrdersPage = () => {
       >
         <DataTable
           columns={columns}
-          rows={orders}
+          rows={filtered}
           rowKey={(order) => order._id}
           pageSizeKey="admin-orders"
           renderDetail={renderDetail}
